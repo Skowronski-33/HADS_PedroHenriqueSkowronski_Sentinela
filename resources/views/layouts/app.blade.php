@@ -14,6 +14,17 @@
             <a class="navbar-brand" href="{{ route('dashboard') }}">
                 <i class="bi bi-shield-fill-check"></i> Sentinela
             </a>
+            @auth
+                @role('Admin')
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('usuarios.index') }}">
+                                <i class="bi bi-people"></i> Usuários
+                            </a>
+                        </li>
+                    </ul>
+                @endrole
+            @endauth
             <div class="ms-auto">
                 @auth
                     <span class="text-light me-3">

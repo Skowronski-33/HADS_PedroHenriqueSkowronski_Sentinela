@@ -21,6 +21,14 @@ class LoginController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            if (! Auth::user()->ativo) {
+                Auth::logout();
+
+                return back()
+                    ->withErrors(['email' => 'Este usuário está inativo. Procure um administrador.'])
+                    ->onlyInput('email');
+            }
+
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
         }
