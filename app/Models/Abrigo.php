@@ -27,15 +27,18 @@ class Abrigo extends Model
         return $this->hasMany(Donativo::class);
     }
 
-    public function ocupacoes()
+    public function pessoasAbrigadas()
     {
-        return $this->hasMany(OcupacaoAbrigo::class);
+        return $this->hasMany(PessoaAbrigada::class);
+    }
+
+    public function pessoasAtivas()
+    {
+        return $this->pessoasAbrigadas()->whereNull('data_saida');
     }
 
     public function ocupacaoAtual(): int
     {
-        return (int) $this->ocupacoes()
-            ->selectRaw("COALESCE(SUM(CASE WHEN tipo_movimentacao = 'entrada' THEN quantidade_pessoas ELSE -quantidade_pessoas END), 0) as total")
-            ->value('total');
+        return $this->pessoasAtivas()->count();
     }
 }

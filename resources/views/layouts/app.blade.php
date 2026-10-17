@@ -15,15 +15,22 @@
                 <i class="bi bi-shield-fill-check"></i> Sentinela
             </a>
             @auth
-                @role('Admin')
-                    <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto">
+                    @role('Admin')
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('usuarios.index') }}">
                                 <i class="bi bi-people"></i> Usuários
                             </a>
                         </li>
-                    </ul>
-                @endrole
+                    @endrole
+                    @hasanyrole('Gerenciador de Abrigo|Admin')
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('abrigos.index') }}">
+                                <i class="bi bi-houses"></i> Abrigos
+                            </a>
+                        </li>
+                    @endhasanyrole
+                </ul>
             @endauth
             <div class="ms-auto">
                 @auth
@@ -52,5 +59,31 @@
     </main>
 
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+        document.querySelectorAll('textarea.auto-resize').forEach((el) => {
+            const resize = () => {
+                el.style.height = 'auto';
+                el.style.height = el.scrollHeight + 'px';
+            };
+            el.addEventListener('input', resize);
+            resize();
+        });
+
+        document.querySelectorAll('input.mask-telefone').forEach((el) => {
+            el.addEventListener('input', () => {
+                let v = el.value.replace(/\D/g, '').slice(0, 11);
+                if (v.length > 10) {
+                    v = v.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                } else if (v.length > 6) {
+                    v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+                } else if (v.length > 2) {
+                    v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+                } else if (v.length > 0) {
+                    v = v.replace(/(\d{0,2})/, '($1');
+                }
+                el.value = v.trim().replace(/-$/, '');
+            });
+        });
+    </script>
 </body>
 </html>
