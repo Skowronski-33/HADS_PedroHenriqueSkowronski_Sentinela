@@ -1,5 +1,7 @@
 @php $isEdit = $abrigo !== null; @endphp
 
+<div class="form-section-title"><i class="bi bi-signpost-split"></i> Identificação, Local e Capacidade</div>
+
 <div class="mb-3">
     <label for="nome" class="form-label">Nome</label>
     <input type="text" name="nome" id="nome"
@@ -41,6 +43,8 @@
     </div>
 </div>
 
+<div class="form-section-title"><i class="bi bi-person-lines-fill"></i> Responsável{{ $isEdit ? ' e Status' : '' }}</div>
+
 <div class="mb-3">
     <label for="responsavel" class="form-label">Responsável</label>
     <input type="text" name="responsavel" id="responsavel"
@@ -76,8 +80,10 @@
     </div>
 @endif
 
+<div class="form-section-title"><i class="bi bi-journal-text"></i> Observações</div>
+
 <div class="mb-3">
-    <label for="observacoes" class="form-label">Observações</label>
+    <label for="observacoes" class="form-label">Detalhes adicionais</label>
     <textarea name="observacoes" id="observacoes" rows="3"
               class="form-control auto-resize @error('observacoes') is-invalid @enderror"
               style="resize: none; overflow: hidden;">{{ old('observacoes', $abrigo->observacoes ?? '') }}</textarea>

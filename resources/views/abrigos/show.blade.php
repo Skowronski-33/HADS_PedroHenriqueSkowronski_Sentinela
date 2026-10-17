@@ -3,23 +3,25 @@
 @section('title', $abrigo->nome)
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-            <h1 class="mb-0">{{ $abrigo->nome }}</h1>
-            <p class="text-muted mb-0">{{ $abrigo->endereco }}@if($abrigo->bairro) - {{ $abrigo->bairro }}@endif</p>
+            <h1 class="mb-0"><i class="bi bi-house-door-fill"></i> {{ $abrigo->nome }}</h1>
+            <p class="text-muted mb-0"><i class="bi bi-geo-alt"></i> {{ $abrigo->endereco }}@if($abrigo->bairro) - {{ $abrigo->bairro }}@endif</p>
         </div>
         <div>
             <a href="{{ route('abrigos.edit', $abrigo) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-pencil"></i> Editar
             </a>
-            <a href="{{ route('abrigos.index') }}" class="btn btn-outline-secondary">Voltar</a>
+            <a href="{{ route('abrigos.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
         </div>
     </div>
 
     <div class="row mb-4">
         <div class="col-md-8">
             <div class="card h-100">
-                <div class="card-header">Ocupação Atual</div>
+                <div class="card-header"><i class="bi bi-people-fill"></i> Ocupação Atual</div>
                 <div class="card-body">
                     @php
                         $percentual = $abrigo->capacidade > 0 ? min(100, round(($ocupacaoAtual / $abrigo->capacidade) * 100)) : 0;
@@ -39,11 +41,18 @@
         </div>
         <div class="col-md-4">
             <div class="card h-100">
-                <div class="card-header">Informações</div>
+                <div class="card-header"><i class="bi bi-info-circle"></i> Informações</div>
                 <div class="card-body">
-                    <p class="mb-1"><strong>Responsável:</strong> {{ $abrigo->responsavel ?: '-' }}</p>
-                    <p class="mb-1"><strong>Status:</strong> {{ $abrigo->status }}</p>
-                    <p class="mb-0"><strong>Ativo:</strong> {{ $abrigo->ativo ? 'Sim' : 'Não' }}</p>
+                    <p class="mb-2"><i class="bi bi-person-badge text-muted"></i> <strong>Responsável:</strong> {{ $abrigo->responsavel ?: '-' }}</p>
+                    <p class="mb-2"><i class="bi bi-flag text-muted"></i> <strong>Status:</strong> {{ $abrigo->status }}</p>
+                    <p class="mb-0">
+                        <i class="bi bi-toggle-on text-muted"></i> <strong>Ativo:</strong>
+                        @if ($abrigo->ativo)
+                            <span class="badge bg-success">Sim</span>
+                        @else
+                            <span class="badge bg-secondary">Não</span>
+                        @endif
+                    </p>
                 </div>
             </div>
         </div>
@@ -51,7 +60,7 @@
 
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Pessoas Abrigadas</span>
+            <span><i class="bi bi-people-fill"></i> Pessoas Abrigadas</span>
             <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrarPessoa">
                 <i class="bi bi-person-plus"></i> Cadastrar Pessoa
             </button>
@@ -245,81 +254,22 @@
         </script>
     @endif
 
-    <div class="card mb-4">
-        <div class="card-header">Donativos</div>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Item</th>
-                        <th>Unidade</th>
-                        <th>Estoque Atual</th>
-                        <th class="text-end">Movimentar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($abrigo->donativos as $donativo)
-                        <tr>
-                            <td>
-                                {{ $donativo->tipo }}
-                                @if ($donativo->descricao)
-                                    <br><small class="text-muted">{{ $donativo->descricao }}</small>
-                                @endif
-                            </td>
-                            <td>{{ $donativo->unidade_medida }}</td>
-                            <td>
-                                <span class="badge {{ $donativo->estoque_atual > 0 ? 'bg-info' : 'bg-secondary' }}">
-                                    {{ $donativo->estoque_atual }}
-                                </span>
-                            </td>
-                            <td class="text-end">
-                                <div class="d-flex gap-2 justify-content-end">
-                                    <form method="POST" action="{{ route('abrigos.donativos.entrada', [$abrigo, $donativo]) }}" class="d-flex gap-1">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="number" name="quantidade" min="1" class="form-control form-control-sm" style="width: 80px;" placeholder="Qtd." required>
-                                        <button type="submit" class="btn btn-sm btn-success text-nowrap">Entrada</button>
-                                    </form>
-                                    <form method="POST" action="{{ route('abrigos.donativos.saida', [$abrigo, $donativo]) }}" class="d-flex gap-1">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="number" name="quantidade" min="1" class="form-control form-control-sm" style="width: 80px;" placeholder="Qtd." required>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap">Saída</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">Nenhum item de donativo cadastrado.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
     <div class="card">
-        <div class="card-header">Cadastrar Novo Item de Donativo</div>
-        <div class="card-body">
-            <form method="POST" action="{{ route('abrigos.donativos.store', $abrigo) }}" class="row g-2 align-items-end">
-                @csrf
-                <div class="col-md-4">
-                    <label class="form-label">Item</label>
-                    <input type="text" name="tipo" class="form-control" placeholder="Ex: Água mineral" required>
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <div class="entity-card-icon" style="background: var(--sentinela-navy-800); width: 2.75rem; height: 2.75rem; border-radius: .5rem; display:flex; align-items:center; justify-content:center; color: var(--sentinela-amber-500); font-size: 1.3rem;">
+                    <i class="bi bi-box-seam-fill"></i>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Descrição</label>
-                    <input type="text" name="descricao" class="form-control" placeholder="Opcional">
+                <div>
+                    <h5 class="card-title mb-0">Donativos</h5>
+                    <p class="text-muted mb-0">
+                        {{ $abrigo->donativos->count() }} {{ Str::plural('item', $abrigo->donativos->count()) }} cadastrado{{ $abrigo->donativos->count() == 1 ? '' : 's' }}
+                    </p>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Unidade</label>
-                    <input type="text" name="unidade_medida" class="form-control" placeholder="Ex: litros, un" required>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Adicionar</button>
-                </div>
-            </form>
+            </div>
+            <a href="{{ route('abrigos.donativos.index', $abrigo) }}" class="btn btn-primary">
+                <i class="bi bi-box-seam"></i> Gerenciar Donativos
+            </a>
         </div>
     </div>
 @endsection

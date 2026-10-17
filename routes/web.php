@@ -4,8 +4,10 @@ use App\Http\Controllers\AbrigoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DonativoController;
+use App\Http\Controllers\EquipamentoController;
 use App\Http\Controllers\PessoaAbrigadaController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ViaturaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -37,12 +39,18 @@ Route::middleware('auth')->group(function () {
         Route::resource('abrigos', AbrigoController::class)
             ->except(['destroy']);
 
+        Route::get('abrigos/{abrigo}/donativos', [DonativoController::class, 'index'])
+            ->name('abrigos.donativos.index');
         Route::post('abrigos/{abrigo}/donativos', [DonativoController::class, 'store'])
             ->name('abrigos.donativos.store');
+        Route::patch('abrigos/{abrigo}/donativos/{donativo}', [DonativoController::class, 'update'])
+            ->name('abrigos.donativos.update');
         Route::patch('abrigos/{abrigo}/donativos/{donativo}/entrada', [DonativoController::class, 'entrada'])
             ->name('abrigos.donativos.entrada');
         Route::patch('abrigos/{abrigo}/donativos/{donativo}/saida', [DonativoController::class, 'saida'])
             ->name('abrigos.donativos.saida');
+        Route::patch('abrigos/{abrigo}/donativos/{donativo}/transferir', [DonativoController::class, 'transferir'])
+            ->name('abrigos.donativos.transferir');
 
         Route::post('abrigos/{abrigo}/pessoas', [PessoaAbrigadaController::class, 'store'])
             ->name('abrigos.pessoas.store');
@@ -50,5 +58,18 @@ Route::middleware('auth')->group(function () {
             ->name('abrigos.pessoas.saida');
         Route::patch('abrigos/{abrigo}/pessoas/{pessoa}/transferir', [PessoaAbrigadaController::class, 'transferir'])
             ->name('abrigos.pessoas.transferir');
+    });
+
+    // Equipamentos e viaturas (RF09-RF13) - Gerente Operacional e Admin
+    Route::middleware('role:Gerente Operacional|Admin')->group(function () {
+        Route::resource('equipamentos', EquipamentoController::class)
+            ->except(['show', 'create', 'destroy']);
+        Route::patch('equipamentos/{equipamento}/status', [EquipamentoController::class, 'status'])
+            ->name('equipamentos.status');
+
+        Route::resource('viaturas', ViaturaController::class)
+            ->except(['show', 'create', 'destroy']);
+        Route::patch('viaturas/{viatura}/status', [ViaturaController::class, 'status'])
+            ->name('viaturas.status');
     });
 });

@@ -1,0 +1,285 @@
+/* Tema "Centro de Comando" do Sentinela — sobrescreve as variáveis do Bootstrap 5
+   para retemar componentes existentes (botões, badges, links) sem reescrever HTML. */
+
+:root {
+    --sentinela-navy-900: #0b1626;
+    --sentinela-navy-800: #0f1f36;
+    --sentinela-navy-700: #16304f;
+    --sentinela-navy-600: #1f3f66;
+    --sentinela-amber-500: #f0a830;
+    --sentinela-amber-600: #d4891a;
+    --sentinela-bg: #f2f4f8;
+
+    --bs-primary: var(--sentinela-amber-600);
+    --bs-primary-rgb: 212, 137, 26;
+    --bs-link-color: var(--sentinela-amber-600);
+    --bs-link-color-rgb: 212, 137, 26;
+    --bs-link-hover-color: var(--sentinela-amber-500);
+    --bs-link-hover-color-rgb: 240, 168, 48;
+    --bs-body-bg: var(--sentinela-bg);
+    --bs-body-color: #1f2937;
+}
+
+body {
+    background-color: var(--sentinela-bg);
+}
+
+/* Navbar */
+.navbar-sentinela {
+    background-color: var(--sentinela-navy-800);
+    border-bottom: 3px solid var(--sentinela-amber-600);
+}
+
+.navbar-sentinela .navbar-brand {
+    font-weight: 700;
+    letter-spacing: .03em;
+    color: #fff;
+}
+
+.navbar-sentinela .nav-link {
+    color: rgba(255, 255, 255, .78);
+}
+
+.navbar-sentinela .nav-link:hover,
+.navbar-sentinela .nav-link.active {
+    color: var(--sentinela-amber-500);
+}
+
+/* Botões primários (herdado por todo o app: Salvar, Novo Usuário, Cadastrar...) */
+.btn-primary {
+    --bs-btn-bg: var(--sentinela-amber-600);
+    --bs-btn-border-color: var(--sentinela-amber-600);
+    --bs-btn-hover-bg: var(--sentinela-amber-500);
+    --bs-btn-hover-border-color: var(--sentinela-amber-500);
+    --bs-btn-active-bg: var(--sentinela-amber-500);
+    --bs-btn-active-border-color: var(--sentinela-amber-500);
+    --bs-btn-color: var(--sentinela-navy-900);
+    --bs-btn-hover-color: var(--sentinela-navy-900);
+    --bs-btn-active-color: var(--sentinela-navy-900);
+    font-weight: 600;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--sentinela-amber-600);
+    --bs-btn-border-color: var(--sentinela-amber-600);
+    --bs-btn-hover-bg: var(--sentinela-amber-600);
+    --bs-btn-hover-border-color: var(--sentinela-amber-600);
+    --bs-btn-hover-color: var(--sentinela-navy-900);
+}
+
+/* Cards gerais: bordas suaves, sombra discreta */
+.card {
+    border: 1px solid rgba(15, 31, 54, .08);
+    box-shadow: 0 1px 3px rgba(15, 31, 54, .06);
+}
+
+.card-header {
+    background-color: rgba(15, 31, 54, .03);
+    font-weight: 600;
+    color: var(--sentinela-navy-800);
+}
+
+/* Painel situacional: cards de estatística */
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid rgba(15, 31, 54, .08);
+    border-left: 4px solid var(--sentinela-amber-600);
+    border-radius: .5rem;
+    padding: 1.1rem 1.25rem;
+    box-shadow: 0 1px 3px rgba(15, 31, 54, .06);
+    height: 100%;
+}
+
+.stat-card.stat-card-muted {
+    border-left-color: #cbd5e1;
+}
+
+a.stat-card {
+    color: inherit;
+    text-decoration: none;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+
+a.stat-card:hover {
+    box-shadow: 0 4px 10px rgba(15, 31, 54, .12);
+    transform: translateY(-2px);
+    color: inherit;
+}
+
+a.stat-card.stat-card-muted {
+    cursor: default;
+    pointer-events: none;
+}
+
+.stat-card-icon {
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: .5rem;
+    background: var(--sentinela-navy-800);
+    color: var(--sentinela-amber-500);
+    font-size: 1.4rem;
+}
+
+.stat-card.stat-card-muted .stat-card-icon {
+    background: #e2e8f0;
+    color: #94a3b8;
+}
+
+.stat-card-label {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.stat-card-value {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--sentinela-navy-900);
+    line-height: 1.1;
+}
+
+.stat-card.stat-card-muted .stat-card-value {
+    color: #94a3b8;
+}
+
+.stat-card-hint {
+    font-size: .75rem;
+    color: #94a3b8;
+}
+
+/* Cabeçalho de página padrão */
+.page-header-sentinela {
+    border-bottom: 1px solid rgba(15, 31, 54, .08);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-header-sentinela h1 {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+
+.page-header-sentinela h1 .bi {
+    color: var(--sentinela-amber-600);
+}
+
+/* Cards de entidade (grid de Abrigos) */
+.entity-card {
+    background: #fff;
+    border: 1px solid rgba(15, 31, 54, .08);
+    border-radius: .75rem;
+    box-shadow: 0 1px 3px rgba(15, 31, 54, .06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+
+.entity-card:hover {
+    box-shadow: 0 8px 20px rgba(15, 31, 54, .14);
+    transform: translateY(-3px);
+}
+
+/* Permite que o filho flex encolha abaixo do tamanho do conteúdo, para o
+   text-overflow: ellipsis do título funcionar dentro de um container flex. */
+.min-w-0 {
+    min-width: 0;
+}
+
+.entity-card-header {
+    background: var(--sentinela-navy-800);
+    color: #fff;
+    padding: .9rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+}
+
+.entity-card-header .entity-card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: .5rem;
+    background: rgba(255, 255, 255, .1);
+    color: var(--sentinela-amber-500);
+    font-size: 1.15rem;
+}
+
+.entity-card-header .entity-card-title {
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.entity-card-header .entity-card-subtitle {
+    font-size: .78rem;
+    color: rgba(255, 255, 255, .7);
+}
+
+.entity-card-body {
+    padding: 1rem 1.1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+}
+
+.entity-card-footer {
+    padding: .7rem 1.1rem;
+    border-top: 1px solid rgba(15, 31, 54, .06);
+    display: flex;
+    gap: .5rem;
+    background: rgba(15, 31, 54, .015);
+}
+
+.entity-card-footer .btn {
+    flex: 1;
+}
+
+.entity-mini-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .82rem;
+    color: #64748b;
+}
+
+.entity-mini-stat strong {
+    color: var(--sentinela-navy-900);
+}
+
+/* Formulários: cabeçalho de seção dentro do card */
+.form-section-title {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--sentinela-amber-600);
+    font-weight: 700;
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.form-section-title:not(:first-child) {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(15, 31, 54, .07);
+}

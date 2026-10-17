@@ -7,26 +7,44 @@
     <title>@yield('title', 'Sentinela') - Sentinela</title>
     <link href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/sentinela.css') }}" rel="stylesheet">
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-sentinela">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ route('dashboard') }}">
                 <i class="bi bi-shield-fill-check"></i> Sentinela
             </a>
             @auth
                 <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Painel
+                        </a>
+                    </li>
                     @role('Admin')
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('usuarios.index') }}">
+                            <a class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
                                 <i class="bi bi-people"></i> Usuários
                             </a>
                         </li>
                     @endrole
                     @hasanyrole('Gerenciador de Abrigo|Admin')
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('abrigos.index') }}">
+                            <a class="nav-link {{ request()->routeIs('abrigos.*') ? 'active' : '' }}" href="{{ route('abrigos.index') }}">
                                 <i class="bi bi-houses"></i> Abrigos
+                            </a>
+                        </li>
+                    @endhasanyrole
+                    @hasanyrole('Gerente Operacional|Admin')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('viaturas.*') ? 'active' : '' }}" href="{{ route('viaturas.index') }}">
+                                <i class="bi bi-truck"></i> Viaturas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('equipamentos.*') ? 'active' : '' }}" href="{{ route('equipamentos.index') }}">
+                                <i class="bi bi-tools"></i> Equipamentos
                             </a>
                         </li>
                     @endhasanyrole

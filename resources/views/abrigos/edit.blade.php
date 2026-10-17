@@ -3,7 +3,7 @@
 @section('title', 'Editar Abrigo')
 
 @section('content')
-    <h1 class="mb-4">Editar Abrigo</h1>
+    <h1 class="page-header-sentinela"><i class="bi bi-pencil-square"></i> Editar Abrigo</h1>
 
     <div class="card">
         <div class="card-body">

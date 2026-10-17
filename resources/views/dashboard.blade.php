@@ -3,48 +3,96 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    <h1 class="mb-4">Painel Situacional</h1>
-
-    <div class="alert alert-info">
-        Bem-vindo, <strong>{{ auth()->user()->name }}</strong>!
-        Seus perfis: 
-        @foreach (auth()->user()->getRoleNames() as $role)
-            <span class="badge bg-primary">{{ $role }}</span>
-        @endforeach
+    <div class="page-header-sentinela d-flex justify-content-between align-items-end flex-wrap gap-2">
+        <div>
+            <h1 class="mb-1">Painel Situacional</h1>
+            <p class="text-muted mb-0">
+                Bem-vindo, <strong>{{ auth()->user()->name }}</strong>
+                @foreach (auth()->user()->getRoleNames() as $role)
+                    <span class="badge rounded-pill text-bg-light border ms-1">{{ $role }}</span>
+                @endforeach
+            </p>
+        </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-3 mb-3">
-            <div class="card text-bg-warning">
-                <div class="card-body">
-                    <h5 class="card-title">Ocorrências Abertas</h5>
-                    <p class="display-4">0</p>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="stat-card stat-card-muted">
+                <div class="stat-card-icon"><i class="bi bi-fire"></i></div>
+                <div>
+                    <div class="stat-card-label">Ocorrências Abertas</div>
+                    <div class="stat-card-value">—</div>
+                    <div class="stat-card-hint">Módulo a implementar</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Viaturas Disponíveis</h5>
-                    <p class="display-4">0</p>
+        <div class="col-md-4">
+            @hasanyrole('Gerente Operacional|Admin')
+                <a href="{{ route('viaturas.index') }}" class="stat-card">
+            @else
+                <div class="stat-card">
+            @endhasanyrole
+                <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
+                <div>
+                    <div class="stat-card-label">Viaturas Disponíveis</div>
+                    <div class="stat-card-value">{{ $viaturasDisponiveis }}</div>
                 </div>
-            </div>
+            @hasanyrole('Gerente Operacional|Admin')
+                </a>
+            @else
+                </div>
+            @endhasanyrole
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-bg-info">
-                <div class="card-body">
-                    <h5 class="card-title">Abrigos Ativos</h5>
-                    <p class="display-4">0</p>
+        <div class="col-md-4">
+            @hasanyrole('Gerenciador de Abrigo|Admin')
+                <a href="{{ route('abrigos.index') }}" class="stat-card">
+            @else
+                <div class="stat-card">
+            @endhasanyrole
+                <div class="stat-card-icon"><i class="bi bi-houses-fill"></i></div>
+                <div>
+                    <div class="stat-card-label">Abrigos Ativos</div>
+                    <div class="stat-card-value">{{ $abrigosAtivos }}</div>
                 </div>
-            </div>
+            @hasanyrole('Gerenciador de Abrigo|Admin')
+                </a>
+            @else
+                </div>
+            @endhasanyrole
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card text-bg-danger">
-                <div class="card-body">
-                    <h5 class="card-title">Em Atendimento</h5>
-                    <p class="display-4">0</p>
+        <div class="col-md-4">
+            @hasanyrole('Gerenciador de Abrigo|Admin')
+                <a href="{{ route('abrigos.index') }}" class="stat-card">
+            @else
+                <div class="stat-card">
+            @endhasanyrole
+                <div class="stat-card-icon"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <div class="stat-card-label">Pessoas Abrigadas</div>
+                    <div class="stat-card-value">{{ $pessoasAbrigadas }}</div>
                 </div>
-            </div>
+            @hasanyrole('Gerenciador de Abrigo|Admin')
+                </a>
+            @else
+                </div>
+            @endhasanyrole
+        </div>
+        <div class="col-md-4">
+            @hasanyrole('Gerente Operacional|Admin')
+                <a href="{{ route('equipamentos.index') }}" class="stat-card">
+            @else
+                <div class="stat-card">
+            @endhasanyrole
+                <div class="stat-card-icon"><i class="bi bi-tools"></i></div>
+                <div>
+                    <div class="stat-card-label">Equipamentos Disponíveis</div>
+                    <div class="stat-card-value">{{ $equipamentosDisponiveis }}</div>
+                </div>
+            @hasanyrole('Gerente Operacional|Admin')
+                </a>
+            @else
+                </div>
+            @endhasanyrole
         </div>
     </div>
 @endsection
