@@ -283,3 +283,358 @@ a.stat-card.stat-card-muted {
     padding-top: 1.25rem;
     border-top: 1px solid rgba(15, 31, 54, .07);
 }
+
+/* Combobox: input de texto livre + sugestões, substitui o <datalist> nativo
+   (sem estilização possível e visualmente inconsistente entre navegadores). */
+.combobox {
+    position: relative;
+}
+
+.combobox-list {
+    position: absolute;
+    z-index: 1070;
+    top: calc(100% + .3rem);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: .35rem;
+    list-style: none;
+    background: #fff;
+    border: 1px solid rgba(15, 31, 54, .12);
+    border-radius: .6rem;
+    box-shadow: 0 12px 28px rgba(15, 31, 54, .2);
+    max-height: 230px;
+    overflow-y: auto;
+}
+
+.combobox-item {
+    padding: .5rem .75rem;
+    border-radius: .4rem;
+    font-size: .9rem;
+    color: var(--sentinela-navy-900);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.combobox-item:hover,
+.combobox-item.is-active {
+    background: var(--sentinela-amber-600);
+    color: #fff;
+}
+
+.combobox-item-new {
+    color: var(--sentinela-amber-600);
+    font-weight: 600;
+    border-top: 1px solid rgba(15, 31, 54, .08);
+    margin-top: .25rem;
+    padding-top: .6rem;
+}
+
+.combobox-item-new:hover,
+.combobox-item-new.is-active {
+    background: var(--sentinela-amber-600);
+    color: #fff;
+}
+
+.combobox-empty {
+    padding: .5rem .75rem;
+    font-size: .85rem;
+    color: #64748b;
+}
+
+/* Lista de gerenciamento (tipos de equipamento etc.): linhas espaçosas em vez de
+   tabela apertada, cada uma com nome editável + indicador de uso + ação. */
+.manage-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(15, 31, 54, .08);
+    border-radius: .6rem;
+    overflow: hidden;
+}
+
+.manage-list-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .65rem .85rem;
+}
+
+.manage-list-item + .manage-list-item {
+    border-top: 1px solid rgba(15, 31, 54, .07);
+}
+
+.manage-list-item:nth-child(odd) {
+    background: rgba(15, 31, 54, .015);
+}
+
+.manage-list-form {
+    flex: 1;
+    display: flex;
+    gap: .5rem;
+    min-width: 0;
+}
+
+/* Chip de categoria/tipo (ex: tipo de equipamento) */
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .2rem .6rem;
+    border-radius: 100px;
+    font-size: .76rem;
+    font-weight: 600;
+    background: var(--sentinela-amber-600);
+    color: #fff;
+    opacity: .92;
+}
+
+/* Select de status disfarçado de pílula colorida (continua <select> funcional,
+   só perde a aparência padrão do navegador). */
+.status-select {
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    border-radius: 100px;
+    padding: .35rem 2rem .35rem .85rem;
+    font-size: .8rem;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .6rem center;
+    background-size: .7rem;
+}
+
+.status-select:focus {
+    outline: 2px solid var(--sentinela-amber-500);
+    outline-offset: 1px;
+}
+
+.status-select option {
+    color: var(--sentinela-navy-900);
+    background: #fff;
+}
+
+.status-select-disponivel { background-color: #157a45; }
+.status-select-uso,
+.status-select-atendimento { background-color: #1f6fb2; }
+.status-select-manutencao { background-color: #b5780f; }
+.status-select-indisponivel { background-color: #5b6879; }
+
+/* =======================================================================
+   Cards de equipamento — fundo claro, ícone em círculo pastel, status em
+   pílula leve (fundo tintado, não sólido), menu de contexto "⋮".
+   ======================================================================= */
+
+:root {
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+    font-family: var(--font-sans);
+}
+
+.equip-card {
+    background: #fff;
+    border: 1px solid #e5e9ef;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 31, 54, .04);
+    padding: 1.1rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+    transition: box-shadow .15s ease, transform .15s ease, border-color .15s ease;
+}
+
+.equip-card:hover {
+    box-shadow: 0 10px 24px rgba(15, 31, 54, .1);
+    border-color: #d8deE7;
+    transform: translateY(-2px);
+}
+
+.equip-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .6rem;
+}
+
+.equip-card-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: .85rem;
+    background: var(--sentinela-amber-600);
+    background: color-mix(in srgb, var(--sentinela-amber-600) 14%, white);
+    color: var(--sentinela-amber-600);
+    font-size: 1.3rem;
+}
+
+.equip-card-heading {
+    flex: 1;
+    min-width: 0;
+}
+
+.equip-card-name {
+    font-weight: 700;
+    color: var(--sentinela-navy-900);
+    font-size: 1rem;
+    margin: 0 0 .3rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.tag-chip-subtle {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .15rem .55rem;
+    border-radius: 100px;
+    font-size: .72rem;
+    font-weight: 600;
+    background: #f1f3f6;
+    color: #5b6879;
+}
+
+/* Menu de contexto "⋮" */
+.equip-card-menu-btn {
+    border: none;
+    background: transparent;
+    color: #8a97aa;
+    width: 2rem;
+    height: 2rem;
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.equip-card-menu-btn:hover,
+.equip-card-menu-btn:focus {
+    background: #f1f3f6;
+    color: var(--sentinela-navy-900);
+}
+
+/* Linhas de informação secundária (patrimônio, localização, manutenção) */
+.equip-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    font-size: .8rem;
+    color: #64748b;
+}
+
+.equip-card-meta .row-item {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+}
+
+.equip-card-meta .row-item i {
+    color: #9aa6b8;
+    width: 1rem;
+    text-align: center;
+}
+
+.equip-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    margin-top: auto;
+    padding-top: .75rem;
+    border-top: 1px solid #f1f3f6;
+}
+
+.equip-card-inactive {
+    font-size: .72rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+/* Status: pílula leve (fundo tintado), mantém <select> funcional */
+.status-pill-select {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid transparent;
+    border-radius: 100px;
+    padding: .3rem 1.8rem .3rem .75rem;
+    font-size: .76rem;
+    font-weight: 600;
+    cursor: pointer;
+    background-repeat: no-repeat;
+    background-position: right .55rem center;
+    background-size: .6rem;
+}
+
+.status-pill-select:focus {
+    outline: 2px solid var(--sentinela-amber-500);
+    outline-offset: 1px;
+}
+
+.status-pill-select::before {
+    content: "";
+}
+
+.status-pill-disponivel {
+    background-color: #e3f6ea;
+    color: #157a45;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23157a45' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+}
+
+.status-pill-uso,
+.status-pill-atendimento {
+    background-color: #e3edf9;
+    color: #1f6fb2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%231f6fb2' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+}
+
+.status-pill-manutencao {
+    background-color: #fbf0dd;
+    color: #a3690d;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23a3690d' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+}
+
+.status-pill-indisponivel {
+    background-color: #eef1f4;
+    color: #5b6879;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%235b6879' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+}
+
+/* Busca com lupa embutida */
+.search-inline {
+    position: relative;
+}
+
+.search-inline i {
+    position: absolute;
+    left: .75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa6b8;
+    pointer-events: none;
+}
+
+.search-inline input {
+    padding-left: 2.25rem;
+    border-radius: 100px;
+}
+
+/* Botão primário com cantos mais arredondados e leve elevação no hover */
+.btn-pill {
+    border-radius: 100px !important;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+
+.btn-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(15, 31, 54, .14);
+}

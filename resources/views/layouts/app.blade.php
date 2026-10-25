@@ -48,6 +48,7 @@
                             </a>
                         </li>
                     @endhasanyrole
+                    
                 </ul>
             @endauth
             <div class="ms-auto">
@@ -100,6 +101,98 @@
                     v = v.replace(/(\d{0,2})/, '($1');
                 }
                 el.value = v.trim().replace(/-$/, '');
+            });
+        });
+
+        document.querySelectorAll('.combobox').forEach((wrap) => {
+            const input = wrap.querySelector('.combobox-input');
+            const list = wrap.querySelector('.combobox-list');
+            const options = JSON.parse(wrap.dataset.options || '[]');
+            let activeIndex = -1;
+
+            const close = () => { list.hidden = true; activeIndex = -1; };
+
+            const render = () => {
+                const term = input.value.trim().toLowerCase();
+                const matches = term ? options.filter((o) => o.toLowerCase().includes(term)) : options;
+                const exact = options.some((o) => o.toLowerCase() === term);
+
+                list.innerHTML = '';
+                activeIndex = -1;
+
+                if (!matches.length && !term) {
+                    close();
+                    return;
+                }
+
+                matches.forEach((opt) => {
+                    const li = document.createElement('li');
+                    li.className = 'combobox-item';
+                    li.innerHTML = '<i class="bi bi-tag"></i> ' + opt;
+                    li.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        input.value = opt;
+                        close();
+                    });
+                    list.appendChild(li);
+                });
+
+                if (term && !exact) {
+                    const li = document.createElement('li');
+                    li.className = 'combobox-item combobox-item-new';
+                    li.innerHTML = '<i class="bi bi-plus-circle"></i> Criar novo: "' + input.value.trim() + '"';
+                    li.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        close();
+                    });
+                    list.appendChild(li);
+                }
+
+                if (!list.children.length) {
+                    const li = document.createElement('li');
+                    li.className = 'combobox-empty';
+                    li.textContent = 'Nenhuma opção encontrada';
+                    list.appendChild(li);
+                }
+
+                list.hidden = false;
+            };
+
+            const items = () => Array.from(list.querySelectorAll('.combobox-item'));
+
+            const setActive = (index) => {
+                const els = items();
+                els.forEach((el) => el.classList.remove('is-active'));
+                if (index >= 0 && index < els.length) {
+                    els[index].classList.add('is-active');
+                    els[index].scrollIntoView({ block: 'nearest' });
+                }
+                activeIndex = index;
+            };
+
+            input.addEventListener('focus', render);
+            input.addEventListener('input', render);
+            input.addEventListener('blur', close);
+
+            input.addEventListener('keydown', (e) => {
+                if (list.hidden) return;
+                const els = items();
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setActive(Math.min(activeIndex + 1, els.length - 1));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setActive(Math.max(activeIndex - 1, 0));
+                } else if (e.key === 'Enter' && activeIndex >= 0) {
+                    e.preventDefault();
+                    els[activeIndex].dispatchEvent(new Event('mousedown'));
+                } else if (e.key === 'Escape') {
+                    close();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!wrap.contains(e.target)) close();
             });
         });
     </script>

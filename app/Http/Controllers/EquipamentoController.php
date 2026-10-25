@@ -22,11 +22,16 @@ class EquipamentoController extends Controller
             ->withQueryString();
 
         $tipos = TipoEquipamento::where('ativo', true)->orderBy('nome')->get();
+        $tiposComContagem = TipoEquipamento::where('ativo', true)
+            ->withCount('equipamentos')
+            ->orderBy('nome')
+            ->get();
 
         return view('equipamentos.index', [
             'equipamentos' => $equipamentos,
             'busca' => $busca,
             'tipos' => $tipos,
+            'tiposComContagem' => $tiposComContagem,
             'statusOpcoes' => self::STATUS_OPCOES,
         ]);
     }
@@ -36,6 +41,9 @@ class EquipamentoController extends Controller
         $data = $request->validateWithBag('equipamento', [
             'tipo_equipamento' => ['required', 'string', 'max:100'],
             'nome' => ['required', 'string', 'max:100'],
+            'patrimonio' => ['nullable', 'string', 'max:50'],
+            'localizacao' => ['nullable', 'string', 'max:100'],
+            'data_ultima_manutencao' => ['nullable', 'date'],
             'observacoes' => ['nullable', 'string'],
         ]);
 
@@ -75,6 +83,9 @@ class EquipamentoController extends Controller
         $data = $request->validate([
             'tipo_equipamento' => ['required', 'string', 'max:100'],
             'nome' => ['required', 'string', 'max:100'],
+            'patrimonio' => ['nullable', 'string', 'max:50'],
+            'localizacao' => ['nullable', 'string', 'max:100'],
+            'data_ultima_manutencao' => ['nullable', 'date'],
             'observacoes' => ['nullable', 'string'],
             'ativo' => ['nullable', 'boolean'],
         ]);
@@ -101,5 +112,20 @@ class EquipamentoController extends Controller
         ]);
 
         return redirect()->route('equipamentos.index')->with('success', "Status de \"{$equipamento->nome}\" atualizado para \"{$data['status']}\".");
+    }
+
+    public function destroy(Equipamento $equipamento)
+    {
+        $emUso = $equipamento->atendimentos()->count();
+
+        if ($emUso > 0) {
+            return redirect()->route('equipamentos.index')
+                ->with('error', "Não é possível excluir \"{$equipamento->nome}\": ele está vinculado a {$emUso} atendimento(s).");
+        }
+
+        $nome = $equipamento->nome;
+        $equipamento->delete();
+
+        return redirect()->route('equipamentos.index')->with('success', "Equipamento \"{$nome}\" excluído com sucesso.");
     }
 }

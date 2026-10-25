@@ -27,23 +27,6 @@
             </div>
         </div>
         <div class="col-md-4">
-            @hasanyrole('Gerente Operacional|Admin')
-                <a href="{{ route('viaturas.index') }}" class="stat-card">
-            @else
-                <div class="stat-card">
-            @endhasanyrole
-                <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
-                <div>
-                    <div class="stat-card-label">Viaturas Disponíveis</div>
-                    <div class="stat-card-value">{{ $viaturasDisponiveis }}</div>
-                </div>
-            @hasanyrole('Gerente Operacional|Admin')
-                </a>
-            @else
-                </div>
-            @endhasanyrole
-        </div>
-        <div class="col-md-4">
             @hasanyrole('Gerenciador de Abrigo|Admin')
                 <a href="{{ route('abrigos.index') }}" class="stat-card">
             @else
@@ -79,6 +62,23 @@
         </div>
         <div class="col-md-4">
             @hasanyrole('Gerente Operacional|Admin')
+                <a href="{{ route('viaturas.index') }}" class="stat-card">
+            @else
+                <div class="stat-card">
+            @endhasanyrole
+                <div class="stat-card-icon"><i class="bi bi-truck"></i></div>
+                <div>
+                    <div class="stat-card-label">Viaturas Disponíveis</div>
+                    <div class="stat-card-value">{{ $viaturasDisponiveis }}</div>
+                </div>
+            @hasanyrole('Gerente Operacional|Admin')
+                </a>
+            @else
+                </div>
+            @endhasanyrole
+        </div>
+        <div class="col-md-4">
+            @hasanyrole('Gerente Operacional|Admin')
                 <a href="{{ route('equipamentos.index') }}" class="stat-card">
             @else
                 <div class="stat-card">
@@ -93,6 +93,16 @@
             @else
                 </div>
             @endhasanyrole
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-card-muted">
+                <div class="stat-card-icon"><i class="bi bi-person"></i></div>
+                <div>
+                    <div class="stat-card-label">Voluntários</div>
+                    <div class="stat-card-value">—</div>
+                    <div class="stat-card-hint">Módulo a implementar</div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection

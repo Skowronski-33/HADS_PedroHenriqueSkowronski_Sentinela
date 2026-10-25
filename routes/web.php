@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DonativoController;
 use App\Http\Controllers\EquipamentoController;
 use App\Http\Controllers\PessoaAbrigadaController;
+use App\Http\Controllers\TipoEquipamentoController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViaturaController;
 use Illuminate\Support\Facades\Route;
@@ -63,9 +64,15 @@ Route::middleware('auth')->group(function () {
     // Equipamentos e viaturas (RF09-RF13) - Gerente Operacional e Admin
     Route::middleware('role:Gerente Operacional|Admin')->group(function () {
         Route::resource('equipamentos', EquipamentoController::class)
-            ->except(['show', 'create', 'destroy']);
+            ->except(['show', 'create']);
         Route::patch('equipamentos/{equipamento}/status', [EquipamentoController::class, 'status'])
             ->name('equipamentos.status');
+        Route::post('tipos-equipamento', [TipoEquipamentoController::class, 'store'])
+            ->name('tipos-equipamento.store');
+        Route::patch('tipos-equipamento/{tipo}', [TipoEquipamentoController::class, 'update'])
+            ->name('tipos-equipamento.update');
+        Route::delete('tipos-equipamento/{tipo}', [TipoEquipamentoController::class, 'destroy'])
+            ->name('tipos-equipamento.destroy');
 
         Route::resource('viaturas', ViaturaController::class)
             ->except(['show', 'create', 'destroy']);

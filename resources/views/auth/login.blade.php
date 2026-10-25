@@ -15,7 +15,7 @@
                     <i class="bi bi-shield-fill-check" style="color: var(--sentinela-amber-600);"></i>
                     Sentinela
                 </h3>
-                <p class="text-center text-muted mb-4">Sistema de Defesa Civil</p>
+                <p class="text-center text-muted mb-4">Sistema de gerenciamento de desastres</p>
 
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
