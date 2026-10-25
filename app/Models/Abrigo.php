@@ -9,9 +9,12 @@ class Abrigo extends Model
     protected $fillable = [
         'nome',
         'endereco',
+        'numero',
         'bairro',
+        'cidade',
         'capacidade',
         'responsavel',
+        'telefone_responsavel',
         'status',
         'ativo',
         'observacoes',
@@ -40,5 +43,16 @@ class Abrigo extends Model
     public function ocupacaoAtual(): int
     {
         return $this->pessoasAtivas()->count();
+    }
+
+    public function enderecoCompleto(): string
+    {
+        $partes = [
+            trim($this->endereco.($this->numero ? ', '.$this->numero : '')),
+            $this->bairro,
+            $this->cidade,
+        ];
+
+        return implode(' - ', array_filter($partes));
     }
 }

@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Abrigo;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AbrigoController extends Controller
 {
+    public const STATUS_OPCOES = ['Ativo', 'Lotado', 'Inativo'];
+
     public function index()
     {
         $abrigos = Abrigo::orderBy('nome')->paginate(15);
@@ -28,9 +31,12 @@ class AbrigoController extends Controller
         $data = $request->validate([
             'nome' => ['required', 'string', 'max:100'],
             'endereco' => ['required', 'string', 'max:200'],
+            'numero' => ['nullable', 'string', 'max:10'],
             'bairro' => ['nullable', 'string', 'max:100'],
+            'cidade' => ['required', 'string', 'max:100'],
             'capacidade' => ['required', 'integer', 'min:1'],
             'responsavel' => ['nullable', 'string', 'max:100'],
+            'telefone_responsavel' => ['nullable', 'string', 'max:20'],
             'observacoes' => ['nullable', 'string'],
         ]);
 
@@ -68,7 +74,9 @@ class AbrigoController extends Controller
 
     public function edit(Abrigo $abrigo)
     {
-        return view('abrigos.edit', compact('abrigo'));
+        $statusOpcoes = self::STATUS_OPCOES;
+
+        return view('abrigos.edit', compact('abrigo', 'statusOpcoes'));
     }
 
     public function update(Request $request, Abrigo $abrigo)
@@ -76,15 +84,41 @@ class AbrigoController extends Controller
         $data = $request->validate([
             'nome' => ['required', 'string', 'max:100'],
             'endereco' => ['required', 'string', 'max:200'],
+            'numero' => ['nullable', 'string', 'max:10'],
             'bairro' => ['nullable', 'string', 'max:100'],
+            'cidade' => ['required', 'string', 'max:100'],
             'capacidade' => ['required', 'integer', 'min:1'],
             'responsavel' => ['nullable', 'string', 'max:100'],
-            'status' => ['required', 'string', 'max:30'],
+            'telefone_responsavel' => ['nullable', 'string', 'max:20'],
+            'status' => ['required', Rule::in(self::STATUS_OPCOES)],
             'observacoes' => ['nullable', 'string'],
-            'ativo' => ['nullable', 'boolean'],
         ]);
 
-        $data['ativo'] = $request->boolean('ativo');
+        // "Ativo" é derivado do status: só "Inativo" marca o abrigo como inativo.
+        $data['ativo'] = $data['status'] !== 'Inativo';
+
+        $estaSendoInativado = $abrigo->status !== 'Inativo' && $data['status'] === 'Inativo';
+
+        if ($estaSendoInativado) {
+            $pessoasAtivas = $abrigo->ocupacaoAtual();
+            $donativosComEstoque = $abrigo->donativos()->where('estoque_atual', '>', 0)->count();
+
+            if ($pessoasAtivas > 0 || $donativosComEstoque > 0) {
+                $pendencias = [];
+
+                if ($pessoasAtivas > 0) {
+                    $pendencias[] = "{$pessoasAtivas} pessoa(s) ainda abrigada(s)";
+                }
+
+                if ($donativosComEstoque > 0) {
+                    $pendencias[] = "{$donativosComEstoque} item(ns) de donativo com estoque";
+                }
+
+                return redirect()->route('abrigos.edit', $abrigo)
+                    ->with('error', 'Não é possível inativar o abrigo: ainda há '.implode(' e ', $pendencias).
+                        '. Registre a saída ou transfira para outro abrigo antes de inativar.');
+            }
+        }
 
         $abrigo->update($data);
 

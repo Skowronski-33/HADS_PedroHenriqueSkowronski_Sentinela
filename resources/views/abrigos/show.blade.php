@@ -6,7 +6,7 @@
     <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h1 class="mb-0"><i class="bi bi-house-door-fill"></i> {{ $abrigo->nome }}</h1>
-            <p class="text-muted mb-0"><i class="bi bi-geo-alt"></i> {{ $abrigo->endereco }}@if($abrigo->bairro) - {{ $abrigo->bairro }}@endif</p>
+            <p class="text-muted mb-0"><i class="bi bi-geo-alt"></i> {{ $abrigo->enderecoCompleto() }}</p>
         </div>
         <div>
             <a href="{{ route('abrigos.edit', $abrigo) }}" class="btn btn-outline-secondary">
@@ -44,15 +44,8 @@
                 <div class="card-header"><i class="bi bi-info-circle"></i> Informações</div>
                 <div class="card-body">
                     <p class="mb-2"><i class="bi bi-person-badge text-muted"></i> <strong>Responsável:</strong> {{ $abrigo->responsavel ?: '-' }}</p>
+                    <p class="mb-2"><i class="bi bi-telephone text-muted"></i> <strong>Telefone:</strong> {{ $abrigo->telefone_responsavel ?: '-' }}</p>
                     <p class="mb-2"><i class="bi bi-flag text-muted"></i> <strong>Status:</strong> {{ $abrigo->status }}</p>
-                    <p class="mb-0">
-                        <i class="bi bi-toggle-on text-muted"></i> <strong>Ativo:</strong>
-                        @if ($abrigo->ativo)
-                            <span class="badge bg-success">Sim</span>
-                        @else
-                            <span class="badge bg-secondary">Não</span>
-                        @endif
-                    </p>
                 </div>
             </div>
         </div>

@@ -31,7 +31,7 @@
                             <div class="flex-grow-1 overflow-hidden min-w-0">
                                 <p class="entity-card-title">{{ $abrigo->nome }}</p>
                                 <p class="entity-card-subtitle mb-0">
-                                    <i class="bi bi-geo-alt"></i> {{ $abrigo->endereco }}@if($abrigo->bairro) - {{ $abrigo->bairro }}@endif
+                                    <i class="bi bi-geo-alt"></i> {{ $abrigo->enderecoCompleto() }}
                                 </p>
                             </div>
                         </div>
