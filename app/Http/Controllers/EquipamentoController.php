@@ -14,11 +14,16 @@ class EquipamentoController extends Controller
     public function index(Request $request)
     {
         $busca = $request->query('busca');
+        $status = $request->query('status');
 
         $equipamentos = Equipamento::with('tipoEquipamento')
             ->when($busca, fn ($q) => $q->where('nome', 'ilike', "%{$busca}%"))
+            ->when($status === 'ativos', fn ($q) => $q->where('ativo', true)->where('status', '!=', 'Indisponível'))
+            ->when($status === 'inativos', fn ($q) => $q->where(function ($q2) {
+                $q2->where('ativo', false)->orWhere('status', 'Indisponível');
+            }))
             ->orderBy('nome')
-            ->paginate(10)
+            ->paginate(9)
             ->withQueryString();
 
         $tipos = TipoEquipamento::where('ativo', true)->orderBy('nome')->get();
@@ -30,6 +35,7 @@ class EquipamentoController extends Controller
         return view('equipamentos.index', [
             'equipamentos' => $equipamentos,
             'busca' => $busca,
+            'status' => $status,
             'tipos' => $tipos,
             'tiposComContagem' => $tiposComContagem,
             'statusOpcoes' => self::STATUS_OPCOES,
@@ -111,7 +117,18 @@ class EquipamentoController extends Controller
             'disponibilidade' => $data['status'] === 'Disponível' ? 'Sim' : 'Não',
         ]);
 
-        return redirect()->route('equipamentos.index')->with('success', "Status de \"{$equipamento->nome}\" atualizado para \"{$data['status']}\".");
+        return back()->with('success', "Status de \"{$equipamento->nome}\" atualizado para \"{$data['status']}\".");
+    }
+
+    public function toggleAtivo(Equipamento $equipamento)
+    {
+        $equipamento->update(['ativo' => ! $equipamento->ativo]);
+
+        $mensagem = $equipamento->ativo
+            ? "Equipamento \"{$equipamento->nome}\" reativado."
+            : "Equipamento \"{$equipamento->nome}\" inativado.";
+
+        return back()->with('success', $mensagem);
     }
 
     public function destroy(Equipamento $equipamento)

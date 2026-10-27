@@ -28,11 +28,20 @@
         <p class="mb-0 text-muted">
             Mostrando {{ $equipamentos->count() }} de {{ $equipamentos->total() }} equipamentos
         </p>
+        <div class="btn-group" role="group">
+            <a href="{{ route('equipamentos.index', ['busca' => $busca]) }}"
+               class="btn btn-sm {{ !$status ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</a>
+            <a href="{{ route('equipamentos.index', ['busca' => $busca, 'status' => 'ativos']) }}"
+               class="btn btn-sm {{ $status === 'ativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Ativos</a>
+            <a href="{{ route('equipamentos.index', ['busca' => $busca, 'status' => 'inativos']) }}"
+               class="btn btn-sm {{ $status === 'inativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Inativos</a>
+        </div>
         <form method="GET" action="{{ route('equipamentos.index') }}" class="search-inline" style="width: 300px; max-width: 100%;">
             <i class="bi bi-search"></i>
             <input type="text" name="busca" value="{{ $busca }}" class="form-control" placeholder="Buscar por nome...">
+            <input type="hidden" name="status" value="{{ $status }}">
             @if ($busca)
-                <a href="{{ route('equipamentos.index') }}" class="small d-block mt-1 text-muted">Limpar busca</a>
+                <a href="{{ route('equipamentos.index', ['status' => $status]) }}" class="small d-block mt-1 text-muted">Limpar busca</a>
             @endif
         </form>
     </div>
@@ -42,8 +51,12 @@
             <div class="text-center text-muted py-5">
                 <i class="bi bi-tools" style="font-size: 2.5rem; color: #cbd5e1;"></i>
                 <p class="mt-2 mb-0">
-                    @if ($busca)
+                    @if ($busca && $status)
+                        Nenhum equipamento {{ $status === 'ativos' ? 'ativo' : 'inativo' }} encontrado para "{{ $busca }}".
+                    @elseif ($busca)
                         Nenhum equipamento encontrado para "{{ $busca }}".
+                    @elseif ($status)
+                        Nenhum equipamento {{ $status === 'ativos' ? 'ativo' : 'inativo' }} encontrado.
                     @else
                         Nenhum equipamento cadastrado ainda.
                     @endif
@@ -74,8 +87,24 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <form method="POST" action="{{ route('equipamentos.toggle-ativo', $equipamento) }}"
+                                              @if ($equipamento->ativo) data-confirm="Inativar '{{ $equipamento->nome }}'? Ele deixará de aparecer como disponível." @endif>
+                                            @csrf
+                                            @method('PATCH')
+                                            @if ($equipamento->ativo)
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-slash-circle me-2"></i> Inativar
+                                                </button>
+                                            @else
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-check-circle me-2"></i> Reativar
+                                                </button>
+                                            @endif
+                                        </form>
+                                    </li>
+                                    <li>
                                         <form method="POST" action="{{ route('equipamentos.destroy', $equipamento) }}"
-                                              onsubmit="return confirm('Excluir \'{{ $equipamento->nome }}\'? Essa ação não pode ser desfeita.')">
+                                              data-confirm="Excluir '{{ $equipamento->nome }}'? Essa ação não pode ser desfeita.">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="dropdown-item text-danger">
@@ -101,22 +130,21 @@
                             </div>
                         @endif
 
-                        <div class="equip-card-foot">
+                        <div class="equip-card-foot justify-content-end">
                             @if (!$equipamento->ativo)
-                                <span class="equip-card-inactive"><i class="bi bi-slash-circle"></i> Inativo</span>
+                                <span class="status-badge status-badge-indisponivel"><i class="bi bi-slash-circle"></i> Inativo</span>
                             @else
-                                <span></span>
+                                <form method="POST" action="{{ route('equipamentos.status', $equipamento) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <select name="status" onchange="this.form.submit()"
+                                            class="status-pill-select status-pill-{{ $statusSlug[$equipamento->status] ?? 'indisponivel' }}">
+                                        @foreach ($statusOpcoes as $opcao)
+                                            <option value="{{ $opcao }}" {{ $equipamento->status === $opcao ? 'selected' : '' }}>{{ $opcao }}</option>
+                                        @endforeach
+                                    </select>
+                                </form>
                             @endif
-                            <form method="POST" action="{{ route('equipamentos.status', $equipamento) }}">
-                                @csrf
-                                @method('PATCH')
-                                <select name="status" onchange="this.form.submit()"
-                                        class="status-pill-select status-pill-{{ $statusSlug[$equipamento->status] ?? 'indisponivel' }}">
-                                    @foreach ($statusOpcoes as $opcao)
-                                        <option value="{{ $opcao }}" {{ $equipamento->status === $opcao ? 'selected' : '' }}>{{ $opcao }}</option>
-                                    @endforeach
-                                </select>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -150,7 +178,7 @@
                             <label class="form-label">Tipo</label>
                             <div class="combobox" data-options="{{ $tipos->pluck('nome')->toJson() }}">
                                 <input type="text" name="tipo_equipamento" value="{{ old('tipo_equipamento') }}"
-                                       placeholder="Escolha um existente ou digite um novo" autocomplete="off"
+                                       placeholder="Escolha um existente" autocomplete="off"
                                        class="combobox-input form-control @error('tipo_equipamento', 'equipamento') is-invalid @enderror" required>
                                 <ul class="combobox-list" hidden></ul>
                             </div>
@@ -250,7 +278,7 @@
                                     </button>
                                 @else
                                     <form method="POST" action="{{ route('tipos-equipamento.destroy', $tipo) }}"
-                                          onsubmit="return confirm('Excluir o tipo \'{{ $tipo->nome }}\'?')">
+                                          data-confirm="Excluir o tipo '{{ $tipo->nome }}'?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger">

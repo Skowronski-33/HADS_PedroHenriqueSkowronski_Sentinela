@@ -47,7 +47,7 @@ class LookupDataSeeder extends Seeder
             'Equipamento de Resgate',
             'Equipamento de Comunicação',
             'Gerador',
-            'Kit de Primeiros Socorros',
+            'Primeiros Socorros',
         ] as $nome) {
             TipoEquipamento::firstOrCreate(['nome' => $nome]);
         }
