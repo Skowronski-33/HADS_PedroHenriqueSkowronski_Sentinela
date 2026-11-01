@@ -44,4 +44,9 @@ class Ocorrencia extends Model
     {
         return $this->hasMany(Atendimento::class);
     }
+
+    public function enderecoCompleto(): string
+    {
+        return implode(' - ', array_filter([$this->endereco, $this->bairro, $this->cidade]));
+    }
 }
