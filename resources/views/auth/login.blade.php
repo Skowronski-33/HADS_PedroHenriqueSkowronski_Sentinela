@@ -32,11 +32,16 @@
 
                     <div class="mb-3">
                         <label for="password" class="form-label">Senha</label>
-                        <input type="password" name="password" id="password"
-                               class="form-control @error('password') is-invalid @enderror" required>
-                        @error('password')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <div class="input-group">
+                            <input type="password" name="password" id="password"
+                                   class="form-control @error('password') is-invalid @enderror" required>
+                            <button type="button" class="btn btn-outline-secondary" id="togglePassword" tabindex="-1" aria-label="Mostrar senha">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
 
                     <div class="form-check mb-3">
@@ -50,5 +55,19 @@
         </div>
         <p class="text-center text-muted mt-3 small">Sentinela &copy; {{ date('Y') }}</p>
     </div>
+
+    <script>
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+        togglePassword.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            togglePasswordIcon.classList.toggle('bi-eye', !isPassword);
+            togglePasswordIcon.classList.toggle('bi-eye-slash', isPassword);
+            togglePassword.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+        });
+    </script>
 </body>
 </html>
