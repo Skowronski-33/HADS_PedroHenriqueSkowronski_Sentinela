@@ -17,18 +17,21 @@
 
     <div class="row g-3">
         <div class="col-md-4">
-            <div class="stat-card stat-card-muted">
+            @hasanyrole('Atendente de Ocorrências|Gerente Operacional|Admin')
+                <div class="stat-card stat-card-clickable" data-href="{{ route('ocorrencias.index') }}">
+            @else
+                <div class="stat-card">
+            @endhasanyrole
                 <div class="stat-card-icon"><i class="bi bi-fire"></i></div>
                 <div>
                     <div class="stat-card-label">Ocorrências Abertas</div>
-                    <div class="stat-card-value">—</div>
-                    <div class="stat-card-hint">Módulo a implementar</div>
+                    <div class="stat-card-value">{{ $ocorrenciasAbertas }}</div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             @hasanyrole('Gerenciador de Abrigo|Admin')
-                <a href="{{ route('abrigos.index') }}" class="stat-card">
+                <div class="stat-card stat-card-clickable" data-href="{{ route('abrigos.index') }}">
             @else
                 <div class="stat-card">
             @endhasanyrole
@@ -37,15 +40,11 @@
                     <div class="stat-card-label">Abrigos Ativos</div>
                     <div class="stat-card-value">{{ $abrigosAtivos }}</div>
                 </div>
-            @hasanyrole('Gerenciador de Abrigo|Admin')
-                </a>
-            @else
-                </div>
-            @endhasanyrole
+            </div>
         </div>
         <div class="col-md-4">
             @hasanyrole('Gerenciador de Abrigo|Admin')
-                <a href="{{ route('abrigos.index') }}" class="stat-card">
+                <div class="stat-card stat-card-clickable" data-href="{{ route('abrigos.index') }}">
             @else
                 <div class="stat-card">
             @endhasanyrole
@@ -54,15 +53,11 @@
                     <div class="stat-card-label">Pessoas Abrigadas</div>
                     <div class="stat-card-value">{{ $pessoasAbrigadas }}</div>
                 </div>
-            @hasanyrole('Gerenciador de Abrigo|Admin')
-                </a>
-            @else
-                </div>
-            @endhasanyrole
+            </div>
         </div>
         <div class="col-md-4">
             @hasanyrole('Gerente Operacional|Admin')
-                <a href="{{ route('viaturas.index') }}" class="stat-card">
+                <div class="stat-card stat-card-clickable" data-href="{{ route('viaturas.index') }}">
             @else
                 <div class="stat-card">
             @endhasanyrole
@@ -71,15 +66,11 @@
                     <div class="stat-card-label">Viaturas Disponíveis</div>
                     <div class="stat-card-value">{{ $viaturasDisponiveis }}</div>
                 </div>
-            @hasanyrole('Gerente Operacional|Admin')
-                </a>
-            @else
-                </div>
-            @endhasanyrole
+            </div>
         </div>
         <div class="col-md-4">
             @hasanyrole('Gerente Operacional|Admin')
-                <a href="{{ route('equipamentos.index') }}" class="stat-card">
+                <div class="stat-card stat-card-clickable" data-href="{{ route('equipamentos.index') }}">
             @else
                 <div class="stat-card">
             @endhasanyrole
@@ -88,19 +79,18 @@
                     <div class="stat-card-label">Equipamentos Disponíveis</div>
                     <div class="stat-card-value">{{ $equipamentosDisponiveis }}</div>
                 </div>
-            @hasanyrole('Gerente Operacional|Admin')
-                </a>
-            @else
-                </div>
-            @endhasanyrole
+            </div>
         </div>
         <div class="col-md-4">
-            <div class="stat-card stat-card-muted">
-                <div class="stat-card-icon"><i class="bi bi-person"></i></div>
+            @hasanyrole('Gerente Operacional|Admin')
+                <div class="stat-card stat-card-clickable" data-href="{{ route('voluntarios.index') }}">
+            @else
+                <div class="stat-card">
+            @endhasanyrole
+                <div class="stat-card-icon"><i class="bi bi-person-heart"></i></div>
                 <div>
-                    <div class="stat-card-label">Voluntários</div>
-                    <div class="stat-card-value">—</div>
-                    <div class="stat-card-hint">Módulo a implementar</div>
+                    <div class="stat-card-label">Voluntários Disponíveis</div>
+                    <div class="stat-card-value">{{ $voluntariosDisponiveis }}</div>
                 </div>
             </div>
         </div>

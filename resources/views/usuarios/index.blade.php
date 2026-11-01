@@ -43,12 +43,12 @@
                                 <a href="{{ route('usuarios.edit', $user) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i> Editar
                                 </a>
-                                <form action="{{ route('usuarios.toggle-ativo', $user) }}" method="POST" class="d-inline">
+                                <form action="{{ route('usuarios.toggle-ativo', $user) }}" method="POST" class="d-inline"
+                                      @if ($user->ativo) data-confirm="Inativar este usuário? Ele não poderá mais acessar o sistema." @endif>
                                     @csrf
                                     @method('PATCH')
                                     @if ($user->ativo)
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                onclick="return confirm('Inativar este usuário? Ele não poderá mais acessar o sistema.')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
                                             <i class="bi bi-person-dash"></i> Inativar
                                         </button>
                                     @else

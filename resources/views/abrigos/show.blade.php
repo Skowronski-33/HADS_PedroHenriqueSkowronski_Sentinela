@@ -128,7 +128,7 @@
                                         </form>
                                     @endif
                                     <form method="POST" action="{{ route('abrigos.pessoas.saida', [$abrigo, $pessoa]) }}"
-                                          onsubmit="return confirm('Registrar saída definitiva de {{ $pessoa->nome }} deste abrigo?')">
+                                          data-confirm="Registrar saída definitiva de {{ $pessoa->nome }} deste abrigo?">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap">

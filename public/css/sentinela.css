@@ -97,21 +97,14 @@ body {
     border-left-color: #cbd5e1;
 }
 
-a.stat-card {
-    color: inherit;
-    text-decoration: none;
+.stat-card-clickable {
+    cursor: pointer;
     transition: box-shadow .15s ease, transform .15s ease;
 }
 
-a.stat-card:hover {
+.stat-card-clickable:hover {
     box-shadow: 0 4px 10px rgba(15, 31, 54, .12);
     transform: translateY(-2px);
-    color: inherit;
-}
-
-a.stat-card.stat-card-muted {
-    cursor: default;
-    pointer-events: none;
 }
 
 .stat-card-icon {
@@ -154,6 +147,32 @@ a.stat-card.stat-card-muted {
 .stat-card-hint {
     font-size: .75rem;
     color: #94a3b8;
+}
+
+/* Modal de confirmação (substitui o confirm() nativo do navegador) */
+.confirm-modal-content {
+    border: none;
+    border-top: 4px solid var(--sentinela-amber-600);
+    border-radius: .75rem;
+    box-shadow: 0 10px 30px rgba(11, 22, 38, .25);
+}
+
+.confirm-modal-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    margin: .5rem auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fdecea;
+    color: #dc3545;
+    font-size: 1.5rem;
+}
+
+.confirm-modal-message {
+    color: var(--sentinela-navy-800);
+    font-size: 1.02rem;
 }
 
 /* Cabeçalho de página padrão */
@@ -503,6 +522,15 @@ body {
     color: #5b6879;
 }
 
+/* Variações de cor do tag-chip por categoria (habilidade do voluntário, tipo da viatura) */
+.tag-chip-slate { background: #f1f3f6; color: #5b6879; }
+.tag-chip-red { background: #fdecea; color: #c23b3b; }
+.tag-chip-blue { background: #e3edf9; color: #1f6fb2; }
+.tag-chip-teal { background: #e1f5f3; color: #1a8a7c; }
+.tag-chip-purple { background: #f0eafc; color: #6f42c1; }
+.tag-chip-amber { background: #fbf0dd; color: #a3690d; }
+.tag-chip-green { background: #e3f6ea; color: #157a45; }
+
 /* Menu de contexto "⋮" */
 .equip-card-menu-btn {
     border: none;
@@ -544,6 +572,11 @@ body {
     text-align: center;
 }
 
+.equip-card-meta .row-item-strong {
+    color: var(--sentinela-navy-800);
+    font-weight: 600;
+}
+
 .equip-card-foot {
     display: flex;
     align-items: center;
@@ -560,7 +593,8 @@ body {
     color: #94a3b8;
 }
 
-/* Status: pílula leve (fundo tintado), mantém <select> funcional */
+/* Status: pílula sólida (cor forte, texto branco), mantém <select> funcional.
+   Cor sólida em vez de fundo tintado para ler mais rápido em telas de operação. */
 .status-pill-select {
     appearance: none;
     -webkit-appearance: none;
@@ -568,11 +602,13 @@ body {
     border-radius: 100px;
     padding: .3rem 1.8rem .3rem .75rem;
     font-size: .76rem;
-    font-weight: 600;
+    font-weight: 700;
+    color: #fff;
     cursor: pointer;
     background-repeat: no-repeat;
-    background-position: right .55rem center;
+    background-position: right .6rem center;
     background-size: .6rem;
+    box-shadow: 0 1px 2px rgba(15, 31, 54, .12);
 }
 
 .status-pill-select:focus {
@@ -585,28 +621,66 @@ body {
 }
 
 .status-pill-disponivel {
-    background-color: #e3f6ea;
-    color: #157a45;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23157a45' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+    background-color: #198754;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
 }
 
 .status-pill-uso,
 .status-pill-atendimento {
-    background-color: #e3edf9;
-    color: #1f6fb2;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%231f6fb2' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+    background-color: #0d6efd;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
 }
 
 .status-pill-manutencao {
-    background-color: #fbf0dd;
-    color: #a3690d;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23a3690d' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+    background-color: #c9820c;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
 }
 
 .status-pill-indisponivel {
-    background-color: #eef1f4;
-    color: #5b6879;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%235b6879' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+    background-color: #6c7a8c;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%23fff' d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E");
+}
+
+/* Status: pílula estática (somente leitura), mesma paleta sólida da .status-pill-select */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    border-radius: 100px;
+    padding: .3rem .75rem;
+    font-size: .76rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.status-badge-disponivel { background-color: #198754; }
+.status-badge-uso,
+.status-badge-atendimento { background-color: #0d6efd; }
+.status-badge-manutencao { background-color: #c9820c; }
+.status-badge-indisponivel { background-color: #6c7a8c; }
+
+/* Borda lateral do card acompanhando o status - identificação rápida em telas de operação */
+.equip-card-accent-disponivel { border-left: 4px solid #198754; }
+.equip-card-accent-uso,
+.equip-card-accent-atendimento { border-left: 4px solid #0d6efd; }
+.equip-card-accent-manutencao { border-left: 4px solid #c9820c; }
+.equip-card-accent-indisponivel { border-left: 4px solid #6c7a8c; }
+
+/* Contexto operacional (ex: equipe/ocorrência vinculada a uma viatura em atendimento) */
+.equip-card-context {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .5rem .65rem;
+    border-radius: .5rem;
+    background: #eaf2ff;
+    color: #1f6fb2;
+    font-size: .78rem;
+    font-weight: 600;
+}
+
+.equip-card-context i {
+    flex-shrink: 0;
 }
 
 /* Busca com lupa embutida */
@@ -628,13 +702,44 @@ body {
     border-radius: 100px;
 }
 
-/* Botão primário com cantos mais arredondados e leve elevação no hover */
+/* Botão primário com cantos mais arredondados, sombra suave e leve elevação no hover */
 .btn-pill {
     border-radius: 100px !important;
+    box-shadow: 0 2px 6px rgba(212, 137, 26, .28);
     transition: box-shadow .15s ease, transform .15s ease;
 }
 
 .btn-pill:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 14px rgba(15, 31, 54, .14);
+}
+
+/* Grupo de filtros em formato de pílula segmentada (Todos/Ativos/Inativos) */
+.filter-pill-group {
+    display: inline-flex;
+    background: #eef1f4;
+    border-radius: 100px;
+    padding: .2rem;
+    gap: .15rem;
+}
+
+.filter-pill-group .btn {
+    border: none !important;
+    border-radius: 100px !important;
+    font-weight: 600;
+    padding: .35rem 1rem;
+}
+
+.filter-pill-group .btn-outline-secondary {
+    background: transparent;
+    color: #5b6879;
+}
+
+.filter-pill-group .btn-outline-secondary:hover {
+    background: rgba(15, 31, 54, .06);
+    color: var(--sentinela-navy-800);
+}
+
+.filter-pill-group .btn-primary {
+    box-shadow: 0 1px 3px rgba(15, 31, 54, .15);
 }

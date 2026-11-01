@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Abrigo;
 use App\Models\Equipamento;
+use App\Models\Ocorrencia;
 use App\Models\PessoaAbrigada;
 use App\Models\Viatura;
+use App\Models\Voluntario;
 
 class DashboardController extends Controller
 {
@@ -15,7 +17,12 @@ class DashboardController extends Controller
         $pessoasAbrigadas = PessoaAbrigada::whereNull('data_saida')->count();
         $viaturasDisponiveis = Viatura::where('ativo', true)->where('status', 'Disponível')->count();
         $equipamentosDisponiveis = Equipamento::where('ativo', true)->where('status', 'Disponível')->count();
+        $voluntariosDisponiveis = Voluntario::where('ativo', true)->where('disponibilidade', 'Disponível')->count();
+        $ocorrenciasAbertas = Ocorrencia::whereIn('status', ['Aberta', 'Em Atendimento'])->count();
 
-        return view('dashboard', compact('abrigosAtivos', 'pessoasAbrigadas', 'viaturasDisponiveis', 'equipamentosDisponiveis'));
+        return view('dashboard', compact(
+            'abrigosAtivos', 'pessoasAbrigadas', 'viaturasDisponiveis',
+            'equipamentosDisponiveis', 'voluntariosDisponiveis', 'ocorrenciasAbertas'
+        ));
     }
 }

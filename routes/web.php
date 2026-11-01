@@ -1,14 +1,19 @@
 <?php
 
 use App\Http\Controllers\AbrigoController;
+use App\Http\Controllers\AtendimentoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DonativoController;
 use App\Http\Controllers\EquipamentoController;
+use App\Http\Controllers\EquipeController;
+use App\Http\Controllers\OcorrenciaController;
 use App\Http\Controllers\PessoaAbrigadaController;
+use App\Http\Controllers\RecursoController;
 use App\Http\Controllers\TipoEquipamentoController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViaturaController;
+use App\Http\Controllers\VoluntarioController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -63,10 +68,14 @@ Route::middleware('auth')->group(function () {
 
     // Equipamentos e viaturas (RF09-RF13) - Gerente Operacional e Admin
     Route::middleware('role:Gerente Operacional|Admin')->group(function () {
+        Route::get('recursos', [RecursoController::class, 'index'])->name('recursos.index');
+
         Route::resource('equipamentos', EquipamentoController::class)
             ->except(['show', 'create']);
         Route::patch('equipamentos/{equipamento}/status', [EquipamentoController::class, 'status'])
             ->name('equipamentos.status');
+        Route::patch('equipamentos/{equipamento}/toggle-ativo', [EquipamentoController::class, 'toggleAtivo'])
+            ->name('equipamentos.toggle-ativo');
         Route::post('tipos-equipamento', [TipoEquipamentoController::class, 'store'])
             ->name('tipos-equipamento.store');
         Route::patch('tipos-equipamento/{tipo}', [TipoEquipamentoController::class, 'update'])
@@ -78,5 +87,38 @@ Route::middleware('auth')->group(function () {
             ->except(['show', 'create', 'destroy']);
         Route::patch('viaturas/{viatura}/status', [ViaturaController::class, 'status'])
             ->name('viaturas.status');
+        Route::patch('viaturas/{viatura}/toggle-ativo', [ViaturaController::class, 'toggleAtivo'])
+            ->name('viaturas.toggle-ativo');
+
+        // Voluntários (RF08)
+        Route::resource('voluntarios', VoluntarioController::class)
+            ->except(['show', 'create']);
+        Route::patch('voluntarios/{voluntario}/disponibilidade', [VoluntarioController::class, 'disponibilidade'])
+            ->name('voluntarios.disponibilidade');
+        Route::patch('voluntarios/{voluntario}/toggle-ativo', [VoluntarioController::class, 'toggleAtivo'])
+            ->name('voluntarios.toggle-ativo');
+
+        // Equipes
+        Route::resource('equipes', EquipeController::class)
+            ->except(['show']);
+        Route::patch('equipes/{equipe}/status', [EquipeController::class, 'status'])
+            ->name('equipes.status');
+        Route::patch('equipes/{equipe}/toggle-ativo', [EquipeController::class, 'toggleAtivo'])
+            ->name('equipes.toggle-ativo');
+    });
+
+    // Ocorrências e atendimentos - Atendente de Ocorrências, Gerente Operacional e Admin
+    Route::middleware('role:Atendente de Ocorrências|Gerente Operacional|Admin')->group(function () {
+        Route::resource('ocorrencias', OcorrenciaController::class)
+            ->except(['destroy']);
+        Route::patch('ocorrencias/{ocorrencia}/encerrar', [OcorrenciaController::class, 'encerrar'])
+            ->name('ocorrencias.encerrar');
+        Route::patch('ocorrencias/{ocorrencia}/cancelar', [OcorrenciaController::class, 'cancelar'])
+            ->name('ocorrencias.cancelar');
+
+        Route::post('ocorrencias/{ocorrencia}/atendimentos', [AtendimentoController::class, 'store'])
+            ->name('ocorrencias.atendimentos.store');
+        Route::patch('ocorrencias/{ocorrencia}/atendimentos/{atendimento}/status', [AtendimentoController::class, 'status'])
+            ->name('ocorrencias.atendimentos.status');
     });
 });

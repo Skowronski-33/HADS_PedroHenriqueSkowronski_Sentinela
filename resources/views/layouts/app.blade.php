@@ -29,6 +29,13 @@
                             </a>
                         </li>
                     @endrole
+                    @hasanyrole('Atendente de Ocorrências|Gerente Operacional|Admin')
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('ocorrencias.*') ? 'active' : '' }}" href="{{ route('ocorrencias.index') }}">
+                                <i class="bi bi-fire"></i> Ocorrências
+                            </a>
+                        </li>
+                    @endhasanyrole
                     @hasanyrole('Gerenciador de Abrigo|Admin')
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('abrigos.*') ? 'active' : '' }}" href="{{ route('abrigos.index') }}">
@@ -45,6 +52,21 @@
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('equipamentos.*') ? 'active' : '' }}" href="{{ route('equipamentos.index') }}">
                                 <i class="bi bi-tools"></i> Equipamentos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('voluntarios.*') ? 'active' : '' }}" href="{{ route('voluntarios.index') }}">
+                                <i class="bi bi-person-heart"></i> Voluntários
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('equipes.*') ? 'active' : '' }}" href="{{ route('equipes.index') }}">
+                                <i class="bi bi-people"></i> Equipes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('recursos.*') ? 'active' : '' }}" href="{{ route('recursos.index') }}">
+                                <i class="bi bi-search"></i> Consultar Recursos
                             </a>
                         </li>
                     @endhasanyrole
@@ -68,17 +90,82 @@
 
     <main class="container py-4">
         @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success alert-dismissible fade show" id="flash-success" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+            </div>
         @endif
         @if (session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+            </div>
         @endif
 
         @yield('content')
     </main>
 
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content confirm-modal-content">
+                <div class="modal-body text-center">
+                    <div class="confirm-modal-icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <p class="confirm-modal-message mb-0" id="confirmModalMessage"></p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger px-4" id="confirmModalConfirmBtn">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script>
+        const flashSuccess = document.getElementById('flash-success');
+        if (flashSuccess) {
+            setTimeout(() => {
+                bootstrap.Alert.getOrCreateInstance(flashSuccess).close();
+            }, 4000);
+        }
+
+        document.querySelectorAll('.stat-card-clickable').forEach((card) => {
+            card.addEventListener('click', () => {
+                window.location.href = card.dataset.href;
+            });
+        });
+
+        const confirmModalEl = document.getElementById('confirmModal');
+        if (confirmModalEl) {
+            const confirmModal = new bootstrap.Modal(confirmModalEl);
+            const confirmModalMessage = document.getElementById('confirmModalMessage');
+            const confirmModalConfirmBtn = document.getElementById('confirmModalConfirmBtn');
+            let pendingForm = null;
+
+            document.querySelectorAll('form[data-confirm]').forEach((form) => {
+                form.addEventListener('submit', (e) => {
+                    if (form.dataset.confirmed === 'true') {
+                        return;
+                    }
+                    e.preventDefault();
+                    pendingForm = form;
+                    confirmModalMessage.textContent = form.dataset.confirm;
+                    confirmModal.show();
+                });
+            });
+
+            confirmModalConfirmBtn.addEventListener('click', () => {
+                confirmModal.hide();
+                if (pendingForm) {
+                    pendingForm.dataset.confirmed = 'true';
+                    pendingForm.requestSubmit();
+                    pendingForm = null;
+                }
+            });
+        }
+
         document.querySelectorAll('textarea.auto-resize').forEach((el) => {
             const resize = () => {
                 el.style.height = 'auto';
