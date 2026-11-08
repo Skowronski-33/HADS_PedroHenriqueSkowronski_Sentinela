@@ -3,7 +3,7 @@
 @section('title', 'Nova Equipe')
 
 @section('content')
-    <h1 class="page-header-sentinela"><i class="bi bi-people-fill"></i> Nova Equipe</h1>
+    <x-page-header title="Nova Equipe" icon="bi-people-fill" />
 
     <div class="card">
         <div class="card-body">

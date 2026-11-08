@@ -3,7 +3,7 @@
 @section('title', 'Editar Equipe')
 
 @section('content')
-    <h1 class="page-header-sentinela"><i class="bi bi-pencil-square"></i> Editar Equipe</h1>
+    <x-page-header title="Editar Equipe" icon="bi-pencil-square" />
 
     <div class="card">
         <div class="card-body">

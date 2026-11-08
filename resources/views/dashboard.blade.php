@@ -3,17 +3,14 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-end flex-wrap gap-2">
-        <div>
-            <h1 class="mb-1">Painel Situacional</h1>
-            <p class="text-muted mb-0">
-                Bem-vindo, <strong>{{ auth()->user()->name }}</strong>
-                @foreach (auth()->user()->getRoleNames() as $role)
-                    <span class="badge rounded-pill text-bg-light border ms-1">{{ $role }}</span>
-                @endforeach
-            </p>
-        </div>
-    </div>
+    <x-page-header title="Painel Situacional" icon="bi-grid-1x2-fill">
+        <x-slot:subtitle>
+            Bem-vindo, <strong>{{ auth()->user()->name }}</strong>
+            @foreach (auth()->user()->getRoleNames() as $role)
+                <span class="badge rounded-pill text-bg-light border ms-1">{{ $role }}</span>
+            @endforeach
+        </x-slot:subtitle>
+    </x-page-header>
 
     <div class="row g-3">
         <div class="col-md-4">

@@ -3,16 +3,11 @@
 @section('title', 'Abrigos')
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h1 class="mb-0"><i class="bi bi-houses-fill"></i> Abrigos</h1>
-        <a href="{{ route('abrigos.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Novo Abrigo
-        </a>
-    </div>
+    <x-page-header title="Abrigos" icon="bi-houses-fill" action-route="abrigos.create" action-text="Novo Abrigo" />
 
     @if ($abrigos->isEmpty())
-        <div class="entity-card">
-            <div class="entity-card-body text-center text-muted py-5">
+        <div class="equip-card">
+            <div class="text-center text-muted py-5">
                 <i class="bi bi-houses" style="font-size: 2.5rem; color: #cbd5e1;"></i>
                 <p class="mt-2 mb-0">Nenhum abrigo cadastrado ainda.</p>
             </div>
@@ -23,20 +18,39 @@
                 @php
                     $percentual = $abrigo->capacidade > 0 ? min(100, round(($abrigo->ocupacao_atual / $abrigo->capacidade) * 100)) : 0;
                     $corBarra = $abrigo->ocupacao_atual >= $abrigo->capacidade ? 'bg-danger' : ($percentual >= 80 ? 'bg-warning' : 'bg-success');
+
+                    $borderColor = ! $abrigo->ativo ? 'indisponivel' : ($abrigo->status === 'Lotado' ? 'manutencao' : 'disponivel');
+                    $statusText = ! $abrigo->ativo ? 'Inativo' : $abrigo->status;
+                    $statusColor = ! $abrigo->ativo ? 'indisponivel' : ($abrigo->status === 'Lotado' ? 'manutencao' : 'disponivel');
                 @endphp
                 <div class="col-md-6 col-lg-4">
-                    <div class="entity-card">
-                        <div class="entity-card-header">
-                            <div class="entity-card-icon"><i class="bi bi-house-door-fill"></i></div>
-                            <div class="flex-grow-1 overflow-hidden min-w-0">
-                                <p class="entity-card-title">{{ $abrigo->nome }}</p>
-                                <p class="entity-card-subtitle mb-0">
-                                    <i class="bi bi-geo-alt"></i> {{ $abrigo->enderecoCompleto() }}
-                                </p>
-                            </div>
+                    <x-resource-card
+                        :title="$abrigo->nome"
+                        icon="bi-house-door-fill"
+                        :border-color="$borderColor"
+                        :status-text="$statusText"
+                        :status-color="$statusColor"
+                    >
+                        <x-slot:actions>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('abrigos.show', $abrigo) }}">
+                                    <i class="bi bi-eye me-2"></i> Gerenciar
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('abrigos.edit', $abrigo) }}">
+                                    <i class="bi bi-pencil me-2"></i> Editar
+                                </a>
+                            </li>
+                        </x-slot:actions>
+
+                        <div class="equip-card-meta">
+                            <span class="row-item"><i class="bi bi-geo-alt"></i> {{ $abrigo->enderecoCompleto() }}</span>
+                            <span class="row-item"><i class="bi bi-person-badge"></i> {{ $abrigo->responsavel ?: 'Sem responsável definido' }}</span>
                         </div>
-                        <div class="entity-card-body">
-                            <div>
+
+                        <x-slot:extraContent>
+                            <div class="equip-card-meta">
                                 <div class="entity-mini-stat mb-1">
                                     <span><i class="bi bi-people"></i> Ocupação</span>
                                     <strong>{{ $abrigo->ocupacao_atual }} / {{ $abrigo->capacidade }}</strong>
@@ -45,27 +59,8 @@
                                     <div class="progress-bar {{ $corBarra }}" style="width: {{ $percentual }}%"></div>
                                 </div>
                             </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted small"><i class="bi bi-person-badge"></i> {{ $abrigo->responsavel ?: 'Sem responsável definido' }}</span>
-                                @if (!$abrigo->ativo)
-                                    <span class="badge bg-secondary">Inativo</span>
-                                @elseif ($abrigo->status === 'Lotado')
-                                    <span class="badge bg-warning text-dark">Lotado</span>
-                                @else
-                                    <span class="badge bg-success">{{ $abrigo->status }}</span>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="entity-card-footer">
-                            <a href="{{ route('abrigos.show', $abrigo) }}" class="btn btn-sm btn-primary">
-                                <i class="bi bi-eye"></i> Gerenciar
-                            </a>
-                            <a href="{{ route('abrigos.edit', $abrigo) }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-pencil"></i> Editar
-                            </a>
-                        </div>
-                    </div>
+                        </x-slot:extraContent>
+                    </x-resource-card>
                 </div>
             @endforeach
         </div>

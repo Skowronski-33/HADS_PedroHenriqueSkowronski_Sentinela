@@ -3,17 +3,16 @@
 @section('title', 'Donativos - '.$abrigo->nome)
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-            <h1 class="mb-1">Donativos</h1>
-            <p class="text-muted mb-0">{{ $abrigo->nome }}</p>
-        </div>
-        <div>
-            <a href="{{ route('abrigos.show', $abrigo) }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Voltar ao Abrigo
-            </a>
-        </div>
-    </div>
+    <x-page-header
+        title="Donativos"
+        icon="bi-box-seam"
+        :subtitle="$abrigo->nome"
+        action-route="abrigos.show"
+        :action-params="$abrigo"
+        action-text="Voltar ao Abrigo"
+        action-icon="bi-arrow-left"
+        action-variant="outline-secondary"
+    />
 
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">

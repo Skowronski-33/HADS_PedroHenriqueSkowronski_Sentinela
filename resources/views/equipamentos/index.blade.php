@@ -12,39 +12,21 @@
 @endphp
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h1 class="mb-0">Equipamentos</h1>
-        <div class="d-flex gap-2">
+    <x-page-header title="Equipamentos" icon="bi-tools" modal-target="modalNovoEquipamento" action-text="Novo Equipamento">
+        <x-slot:actions>
             <button type="button" class="btn btn-outline-secondary btn-pill" data-bs-toggle="modal" data-bs-target="#modalGerenciarTipos">
                 <i class="bi bi-gear"></i> Gerenciar Tipos
             </button>
-            <button type="button" class="btn btn-primary btn-pill" data-bs-toggle="modal" data-bs-target="#modalNovoEquipamento">
-                <i class="bi bi-plus-lg"></i> Novo Equipamento
-            </button>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <p class="mb-0 text-muted">
-            Mostrando {{ $equipamentos->count() }} de {{ $equipamentos->total() }} equipamentos
-        </p>
-        <div class="btn-group" role="group">
-            <a href="{{ route('equipamentos.index', ['busca' => $busca]) }}"
-               class="btn btn-sm {{ !$status ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</a>
-            <a href="{{ route('equipamentos.index', ['busca' => $busca, 'status' => 'ativos']) }}"
-               class="btn btn-sm {{ $status === 'ativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Ativos</a>
-            <a href="{{ route('equipamentos.index', ['busca' => $busca, 'status' => 'inativos']) }}"
-               class="btn btn-sm {{ $status === 'inativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Inativos</a>
-        </div>
-        <form method="GET" action="{{ route('equipamentos.index') }}" class="search-inline" style="width: 300px; max-width: 100%;">
-            <i class="bi bi-search"></i>
-            <input type="text" name="busca" value="{{ $busca }}" class="form-control" placeholder="Buscar por nome...">
-            <input type="hidden" name="status" value="{{ $status }}">
-            @if ($busca)
-                <a href="{{ route('equipamentos.index', ['status' => $status]) }}" class="small d-block mt-1 text-muted">Limpar busca</a>
-            @endif
-        </form>
-    </div>
+    <x-filter-bar
+        route-name="equipamentos.index"
+        :search="$busca"
+        :status="$status"
+        search-placeholder="Buscar por nome..."
+        label="Mostrando {{ $equipamentos->count() }} de {{ $equipamentos->total() }} equipamentos"
+    />
 
     @if ($equipamentos->isEmpty())
         <div class="equip-card">
@@ -67,54 +49,45 @@
         <div class="row g-3">
             @foreach ($equipamentos as $equipamento)
                 <div class="col-md-6 col-lg-4">
-                    <div class="equip-card">
-                        <div class="equip-card-top">
-                            <div class="d-flex gap-2 min-w-0">
-                                <div class="equip-card-icon"><i class="bi {{ $equipamento->iconeTipo() }}"></i></div>
-                                <div class="equip-card-heading">
-                                    <p class="equip-card-name">{{ $equipamento->nome }}</p>
-                                    <span class="tag-chip-subtle">{{ $equipamento->tipoEquipamento->nome }}</span>
-                                </div>
-                            </div>
-                            <div class="dropdown">
-                                <button type="button" class="equip-card-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Mais ações">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('equipamentos.edit', $equipamento) }}">
-                                            <i class="bi bi-pencil me-2"></i> Editar
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <form method="POST" action="{{ route('equipamentos.toggle-ativo', $equipamento) }}"
-                                              @if ($equipamento->ativo) data-confirm="Inativar '{{ $equipamento->nome }}'? Ele deixará de aparecer como disponível." @endif>
-                                            @csrf
-                                            @method('PATCH')
-                                            @if ($equipamento->ativo)
-                                                <button type="submit" class="dropdown-item">
-                                                    <i class="bi bi-slash-circle me-2"></i> Inativar
-                                                </button>
-                                            @else
-                                                <button type="submit" class="dropdown-item">
-                                                    <i class="bi bi-check-circle me-2"></i> Reativar
-                                                </button>
-                                            @endif
-                                        </form>
-                                    </li>
-                                    <li>
-                                        <form method="POST" action="{{ route('equipamentos.destroy', $equipamento) }}"
-                                              data-confirm="Excluir '{{ $equipamento->nome }}'? Essa ação não pode ser desfeita.">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger">
-                                                <i class="bi bi-trash me-2"></i> Excluir
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                    <x-resource-card
+                        :title="$equipamento->nome"
+                        :subtitle="$equipamento->tipoEquipamento->nome"
+                        :icon="$equipamento->iconeTipo()"
+                        :border-color="!$equipamento->ativo ? 'indisponivel' : ($statusSlug[$equipamento->status] ?? 'indisponivel')"
+                    >
+                        <x-slot:actions>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('equipamentos.edit', $equipamento) }}">
+                                    <i class="bi bi-pencil me-2"></i> Editar
+                                </a>
+                            </li>
+                            <li>
+                                <form method="POST" action="{{ route('equipamentos.toggle-ativo', $equipamento) }}"
+                                      @if ($equipamento->ativo) data-confirm="Inativar '{{ $equipamento->nome }}'? Ele deixará de aparecer como disponível." @endif>
+                                    @csrf
+                                    @method('PATCH')
+                                    @if ($equipamento->ativo)
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-slash-circle me-2"></i> Inativar
+                                        </button>
+                                    @else
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-check-circle me-2"></i> Reativar
+                                        </button>
+                                    @endif
+                                </form>
+                            </li>
+                            <li>
+                                <form method="POST" action="{{ route('equipamentos.destroy', $equipamento) }}"
+                                      data-confirm="Excluir '{{ $equipamento->nome }}'? Essa ação não pode ser desfeita.">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash me-2"></i> Excluir
+                                    </button>
+                                </form>
+                            </li>
+                        </x-slot:actions>
 
                         @if ($equipamento->patrimonio || $equipamento->localizacao || $equipamento->data_ultima_manutencao)
                             <div class="equip-card-meta">
@@ -130,10 +103,12 @@
                             </div>
                         @endif
 
-                        <div class="equip-card-foot justify-content-end">
-                            @if (!$equipamento->ativo)
-                                <span class="status-badge status-badge-indisponivel"><i class="bi bi-slash-circle"></i> Inativo</span>
-                            @else
+                        @if (!$equipamento->ativo)
+                            <x-slot:footer>
+                                <x-status-badge text="Inativo" color="indisponivel" icon="bi-slash-circle" />
+                            </x-slot:footer>
+                        @else
+                            <x-slot:footer>
                                 <form method="POST" action="{{ route('equipamentos.status', $equipamento) }}">
                                     @csrf
                                     @method('PATCH')
@@ -144,9 +119,9 @@
                                         @endforeach
                                     </select>
                                 </form>
-                            @endif
-                        </div>
-                    </div>
+                            </x-slot:footer>
+                        @endif
+                    </x-resource-card>
                 </div>
             @endforeach
         </div>

@@ -13,10 +13,11 @@
 @endphp
 
 @section('content')
-    <div class="page-header-sentinela">
-        <h1 class="mb-0">Consultar Recursos</h1>
-        <p class="text-muted mb-0">Visão geral de equipamentos e viaturas para apoiar o planejamento da operação.</p>
-    </div>
+    <x-page-header
+        title="Consultar Recursos"
+        icon="bi-boxes"
+        subtitle="Visão geral de equipamentos e viaturas para apoiar o planejamento da operação."
+    />
 
     <form method="GET" action="{{ route('recursos.index') }}" class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div class="btn-group" role="group">

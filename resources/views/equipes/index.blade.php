@@ -11,34 +11,15 @@
 @endphp
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h1 class="mb-0">Equipes</h1>
-        <a href="{{ route('equipes.create') }}" class="btn btn-primary btn-pill">
-            <i class="bi bi-plus-lg"></i> Nova Equipe
-        </a>
-    </div>
+    <x-page-header title="Equipes" icon="bi-people-fill" action-route="equipes.create" action-text="Nova Equipe" />
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <p class="mb-0 text-muted">
-            Mostrando {{ $equipes->count() }} de {{ $equipes->total() }} equipes
-        </p>
-        <div class="btn-group" role="group">
-            <a href="{{ route('equipes.index', ['busca' => $busca]) }}"
-               class="btn btn-sm {{ !$status ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</a>
-            <a href="{{ route('equipes.index', ['busca' => $busca, 'status' => 'ativos']) }}"
-               class="btn btn-sm {{ $status === 'ativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Ativos</a>
-            <a href="{{ route('equipes.index', ['busca' => $busca, 'status' => 'inativos']) }}"
-               class="btn btn-sm {{ $status === 'inativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Inativos</a>
-        </div>
-        <form method="GET" action="{{ route('equipes.index') }}" class="search-inline" style="width: 300px; max-width: 100%;">
-            <i class="bi bi-search"></i>
-            <input type="text" name="busca" value="{{ $busca }}" class="form-control" placeholder="Buscar por nome...">
-            <input type="hidden" name="status" value="{{ $status }}">
-            @if ($busca)
-                <a href="{{ route('equipes.index', ['status' => $status]) }}" class="small d-block mt-1 text-muted">Limpar busca</a>
-            @endif
-        </form>
-    </div>
+    <x-filter-bar
+        route-name="equipes.index"
+        :search="$busca"
+        :status="$status"
+        search-placeholder="Buscar por nome..."
+        label="Mostrando {{ $equipes->count() }} de {{ $equipes->total() }} equipes"
+    />
 
     @if ($equipes->isEmpty())
         <div class="equip-card">
@@ -61,63 +42,55 @@
         <div class="row g-3">
             @foreach ($equipes as $equipe)
                 <div class="col-md-6 col-lg-4">
-                    <div class="equip-card">
-                        <div class="equip-card-top">
-                            <div class="d-flex gap-2 min-w-0">
-                                <div class="equip-card-icon"><i class="bi bi-people-fill"></i></div>
-                                <div class="equip-card-heading">
-                                    <p class="equip-card-name">{{ $equipe->nome }}</p>
-                                    <span class="tag-chip-subtle">{{ $equipe->tipoEquipe->nome }}</span>
-                                </div>
-                            </div>
-                            <div class="dropdown">
-                                <button type="button" class="equip-card-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Mais ações">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('equipes.edit', $equipe) }}">
-                                            <i class="bi bi-pencil me-2"></i> Editar
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <form method="POST" action="{{ route('equipes.toggle-ativo', $equipe) }}"
-                                              @if ($equipe->ativo) data-confirm="Inativar '{{ $equipe->nome }}'? Ela deixará de aparecer como disponível para despacho." @endif>
-                                            @csrf
-                                            @method('PATCH')
-                                            @if ($equipe->ativo)
-                                                <button type="submit" class="dropdown-item">
-                                                    <i class="bi bi-slash-circle me-2"></i> Inativar
-                                                </button>
-                                            @else
-                                                <button type="submit" class="dropdown-item">
-                                                    <i class="bi bi-check-circle me-2"></i> Reativar
-                                                </button>
-                                            @endif
-                                        </form>
-                                    </li>
-                                    <li>
-                                        <form method="POST" action="{{ route('equipes.destroy', $equipe) }}"
-                                              data-confirm="Excluir '{{ $equipe->nome }}'? Essa ação não pode ser desfeita.">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger">
-                                                <i class="bi bi-trash me-2"></i> Excluir
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                    <x-resource-card
+                        :title="$equipe->nome"
+                        :subtitle="$equipe->tipoEquipe->nome"
+                        :border-color="!$equipe->ativo ? 'indisponivel' : ($statusSlug[$equipe->status] ?? 'indisponivel')"
+                    >
+                        <x-slot:actions>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('equipes.edit', $equipe) }}">
+                                    <i class="bi bi-pencil me-2"></i> Editar
+                                </a>
+                            </li>
+                            <li>
+                                <form method="POST" action="{{ route('equipes.toggle-ativo', $equipe) }}"
+                                      @if ($equipe->ativo) data-confirm="Inativar '{{ $equipe->nome }}'? Ela deixará de aparecer como disponível para despacho." @endif>
+                                    @csrf
+                                    @method('PATCH')
+                                    @if ($equipe->ativo)
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-slash-circle me-2"></i> Inativar
+                                        </button>
+                                    @else
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-check-circle me-2"></i> Reativar
+                                        </button>
+                                    @endif
+                                </form>
+                            </li>
+                            <li>
+                                <form method="POST" action="{{ route('equipes.destroy', $equipe) }}"
+                                      data-confirm="Excluir '{{ $equipe->nome }}'? Essa ação não pode ser desfeita.">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash me-2"></i> Excluir
+                                    </button>
+                                </form>
+                            </li>
+                        </x-slot:actions>
 
                         <div class="equip-card-meta">
                             <span class="row-item"><i class="bi bi-person-check"></i> {{ $equipe->voluntarios->count() }} membro(s)</span>
                         </div>
 
-                        <div class="equip-card-foot justify-content-end">
-                            @if (!$equipe->ativo)
-                                <span class="status-badge status-badge-indisponivel"><i class="bi bi-slash-circle"></i> Inativo</span>
-                            @else
+                        @if (!$equipe->ativo)
+                            <x-slot:footer>
+                                <x-status-badge text="Inativo" color="indisponivel" icon="bi-slash-circle" />
+                            </x-slot:footer>
+                        @else
+                            <x-slot:footer>
                                 <form method="POST" action="{{ route('equipes.status', $equipe) }}">
                                     @csrf
                                     @method('PATCH')
@@ -128,9 +101,9 @@
                                         @endforeach
                                     </select>
                                 </form>
-                            @endif
-                        </div>
-                    </div>
+                            </x-slot:footer>
+                        @endif
+                    </x-resource-card>
                 </div>
             @endforeach
         </div>

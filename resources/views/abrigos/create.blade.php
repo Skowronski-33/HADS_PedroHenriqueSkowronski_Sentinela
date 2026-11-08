@@ -3,7 +3,7 @@
 @section('title', 'Novo Abrigo')
 
 @section('content')
-    <h1 class="page-header-sentinela"><i class="bi bi-house-add-fill"></i> Novo Abrigo</h1>
+    <x-page-header title="Novo Abrigo" icon="bi-house-add-fill" />
 
     <div class="card">
         <div class="card-body">

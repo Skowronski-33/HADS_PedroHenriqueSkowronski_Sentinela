@@ -3,20 +3,17 @@
 @section('title', $abrigo->nome)
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-            <h1 class="mb-0"><i class="bi bi-house-door-fill"></i> {{ $abrigo->nome }}</h1>
-            <p class="text-muted mb-0"><i class="bi bi-geo-alt"></i> {{ $abrigo->enderecoCompleto() }}</p>
-        </div>
-        <div>
+    <x-page-header icon="bi-house-door-fill" :title="$abrigo->nome">
+        <x-slot:subtitle><i class="bi bi-geo-alt"></i> {{ $abrigo->enderecoCompleto() }}</x-slot:subtitle>
+        <x-slot:actions>
             <a href="{{ route('abrigos.edit', $abrigo) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-pencil"></i> Editar
             </a>
             <a href="{{ route('abrigos.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Voltar
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="row mb-4">
         <div class="col-md-8">

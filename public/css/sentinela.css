@@ -577,6 +577,17 @@ body {
     font-weight: 600;
 }
 
+/* Linha de contato clicável (ex: telefone) dentro do card */
+a.row-item {
+    color: inherit;
+    text-decoration: none;
+}
+
+a.row-item:hover {
+    color: var(--sentinela-amber-600);
+    text-decoration: underline;
+}
+
 .equip-card-foot {
     display: flex;
     align-items: center;
@@ -651,6 +662,20 @@ body {
     font-size: .76rem;
     font-weight: 700;
     color: #fff;
+}
+
+/* Variante clicável da pílula de status: mesmo visual da .status-badge estática,
+   mas é um <button> que dispara um dropdown do Bootstrap (ver Voluntários). */
+.status-badge-btn {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+.status-badge-btn .bi-chevron-down {
+    font-size: .6rem;
+    opacity: .85;
 }
 
 .status-badge-disponivel { background-color: #198754; }

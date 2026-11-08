@@ -3,7 +3,7 @@
 @section('title', 'Nova Ocorrência')
 
 @section('content')
-    <h1 class="page-header-sentinela"><i class="bi bi-fire"></i> Registrar Ocorrência</h1>
+    <x-page-header title="Registrar Ocorrência" icon="bi-fire" />
 
     <div class="card">
         <div class="card-body">
