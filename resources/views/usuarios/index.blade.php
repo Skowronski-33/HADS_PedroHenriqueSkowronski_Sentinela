@@ -3,12 +3,7 @@
 @section('title', 'Usuários')
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Usuários</h1>
-        <a href="{{ route('usuarios.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Novo Usuário
-        </a>
-    </div>
+    <x-page-header title="Usuários" icon="bi-people-fill" action-route="usuarios.create" action-text="Novo Usuário" />
 
     <div class="card">
         <div class="table-responsive">
@@ -33,16 +28,20 @@
                                 @endforeach
                             </td>
                             <td>
-                                @if ($user->ativo)
-                                    <span class="badge bg-success">Ativo</span>
-                                @else
-                                    <span class="badge bg-secondary">Inativo</span>
-                                @endif
+                                <x-status-badge :text="$user->ativo ? 'Ativo' : 'Inativo'" :color="$user->ativo ? 'disponivel' : 'indisponivel'" />
                             </td>
                             <td class="text-end">
                                 <a href="{{ route('usuarios.edit', $user) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i> Editar
                                 </a>
+                                <form action="{{ route('usuarios.reset-password', $user) }}" method="POST" class="d-inline"
+                                      data-confirm="Redefinir a senha de {{ $user->name }}? Uma nova senha temporária será gerada.">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-key"></i> Redefinir senha
+                                    </button>
+                                </form>
                                 <form action="{{ route('usuarios.toggle-ativo', $user) }}" method="POST" class="d-inline"
                                       @if ($user->ativo) data-confirm="Inativar este usuário? Ele não poderá mais acessar o sistema." @endif>
                                     @csrf
@@ -72,4 +71,42 @@
     <div class="mt-3">
         {{ $users->links() }}
     </div>
+
+    <div class="modal fade" id="modalSenhaTemporaria" tabindex="-1" aria-labelledby="modalSenhaTemporariaLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalSenhaTemporariaLabel"><i class="bi bi-key"></i> Senha redefinida</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">
+                        Nova senha temporária de <strong>{{ session('usuario_senha_resetada') }}</strong>.
+                        Anote e informe ao usuário — ela não será mostrada novamente.
+                    </p>
+                    <div class="input-group">
+                        <input type="text" id="senhaTemporariaInput" class="form-control fw-bold" value="{{ session('senha_temporaria') }}" readonly>
+                        <button type="button" class="btn btn-outline-secondary" id="copiarSenhaTemporaria">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (session('senha_temporaria'))
+        <script>
+            new bootstrap.Modal(document.getElementById('modalSenhaTemporaria')).show();
+
+            document.getElementById('copiarSenhaTemporaria').addEventListener('click', function () {
+                const input = document.getElementById('senhaTemporariaInput');
+                input.select();
+                navigator.clipboard?.writeText(input.value);
+            });
+        </script>
+    @endif
 @endsection

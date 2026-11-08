@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
@@ -73,6 +74,18 @@ class UserController extends Controller
         $user->syncRoles([$data['perfil']]);
 
         return redirect()->route('usuarios.index')->with('success', 'Usuário atualizado com sucesso.');
+    }
+
+    public function resetPassword(User $user)
+    {
+        $senhaTemporaria = Str::password(10);
+
+        $user->password = Hash::make($senhaTemporaria);
+        $user->save();
+
+        return redirect()->route('usuarios.index')
+            ->with('usuario_senha_resetada', $user->name)
+            ->with('senha_temporaria', $senhaTemporaria);
     }
 
     public function toggleAtivo(Request $request, User $user)

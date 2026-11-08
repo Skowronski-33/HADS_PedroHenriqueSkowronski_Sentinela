@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
             ->except(['show', 'destroy']);
         Route::patch('usuarios/{user}/toggle-ativo', [UserController::class, 'toggleAtivo'])
             ->name('usuarios.toggle-ativo');
+        Route::patch('usuarios/{user}/reset-password', [UserController::class, 'resetPassword'])
+            ->name('usuarios.reset-password');
     });
 
     // Abrigos, donativos e pessoas abrigadas (RF14, RF15, RF16) - Gerenciador de Abrigo e Admin
@@ -113,8 +115,12 @@ Route::middleware('auth')->group(function () {
             ->except(['destroy']);
         Route::patch('ocorrencias/{ocorrencia}/encerrar', [OcorrenciaController::class, 'encerrar'])
             ->name('ocorrencias.encerrar');
-        Route::patch('ocorrencias/{ocorrencia}/cancelar', [OcorrenciaController::class, 'cancelar'])
-            ->name('ocorrencias.cancelar');
+        Route::patch('ocorrencias/{ocorrencia}/triar', [OcorrenciaController::class, 'triar'])
+            ->name('ocorrencias.triar');
+        Route::patch('ocorrencias/{ocorrencia}/classificar', [OcorrenciaController::class, 'classificar'])
+            ->name('ocorrencias.classificar');
+        Route::patch('ocorrencias/{ocorrencia}/descartar', [OcorrenciaController::class, 'descartar'])
+            ->name('ocorrencias.descartar');
 
         Route::post('ocorrencias/{ocorrencia}/atendimentos', [AtendimentoController::class, 'store'])
             ->name('ocorrencias.atendimentos.store');
