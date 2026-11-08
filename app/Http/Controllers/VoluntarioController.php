@@ -24,6 +24,23 @@ class VoluntarioController extends Controller
             ->paginate(9)
             ->withQueryString();
 
+        $voluntarios->getCollection()->each(function (Voluntario $voluntario) {
+            if (! $voluntario->ativo) {
+                return;
+            }
+
+            $equipeEmServico = $voluntario->equipes()->where('ativo', true)->where('status', 'Em Serviço')->first();
+
+            if ($equipeEmServico) {
+                $voluntario->equipeAtual = $equipeEmServico;
+                $voluntario->atendimentoAtual = $equipeEmServico->atendimentos()
+                    ->whereIn('status', ['Em Deslocamento', 'No Local'])
+                    ->with('ocorrencia')
+                    ->latest('data_hora_saida')
+                    ->first();
+            }
+        });
+
         return view('voluntarios.index', [
             'voluntarios' => $voluntarios,
             'busca' => $busca,

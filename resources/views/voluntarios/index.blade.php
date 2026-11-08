@@ -10,34 +10,15 @@
 @endphp
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h1 class="mb-0">Voluntários</h1>
-        <button type="button" class="btn btn-primary btn-pill" data-bs-toggle="modal" data-bs-target="#modalNovoVoluntario">
-            <i class="bi bi-plus-lg"></i> Novo Voluntário
-        </button>
-    </div>
-    
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <p class="mb-0 text-muted">
-            Mostrando {{ $voluntarios->count() }} de {{ $voluntarios->total() }} voluntários
-        </p>
-        <div class="btn-group" role="group">
-            <a href="{{ route('voluntarios.index', ['busca' => $busca]) }}"
-               class="btn btn-sm {{ !$status ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</a>
-            <a href="{{ route('voluntarios.index', ['busca' => $busca, 'status' => 'ativos']) }}"
-               class="btn btn-sm {{ $status === 'ativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Ativos</a>
-            <a href="{{ route('voluntarios.index', ['busca' => $busca, 'status' => 'inativos']) }}"
-               class="btn btn-sm {{ $status === 'inativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Inativos</a>
-        </div>
-        <form method="GET" action="{{ route('voluntarios.index') }}" class="search-inline" style="width: 300px; max-width: 100%;">
-            <i class="bi bi-search"></i>
-            <input type="text" name="busca" value="{{ $busca }}" class="form-control" placeholder="Buscar por nome...">
-            <input type="hidden" name="status" value="{{ $status }}">
-            @if ($busca)
-                <a href="{{ route('voluntarios.index', ['status' => $status]) }}" class="small d-block mt-1 text-muted">Limpar busca</a>
-            @endif
-        </form>
-    </div>
+    <x-page-header title="Voluntários" icon="bi-person-heart" modal-target="modalNovoVoluntario" action-text="Novo Voluntário" />
+
+    <x-filter-bar
+        route-name="voluntarios.index"
+        :search="$busca"
+        :status="$status"
+        search-placeholder="Buscar por nome..."
+        label="Mostrando {{ $voluntarios->count() }} de {{ $voluntarios->total() }} voluntários"
+    />
 
     @if ($voluntarios->isEmpty())
         <div class="equip-card">
@@ -59,78 +40,117 @@
     @else
         <div class="row g-3">
             @foreach ($voluntarios as $voluntario)
+                @php
+                    $telDigits = $voluntario->telefone ? preg_replace('/\D/', '', $voluntario->telefone) : null;
+                @endphp
                 <div class="col-md-6 col-lg-4">
-                    <div class="equip-card">
-                        <div class="equip-card-top">
-                            <div class="equip-card-heading">
-                                <p class="equip-card-name">{{ $voluntario->nome }}</p>
-                                @if ($voluntario->habilidade)
-                                    <span class="tag-chip-subtle tag-chip-{{ $voluntario->corHabilidade() }}">{{ $voluntario->habilidade }}</span>
-                                @endif
-                            </div>
-                            <div class="dropdown">
-                                <button type="button" class="equip-card-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Mais ações">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('voluntarios.edit', $voluntario) }}">
-                                            <i class="bi bi-pencil me-2"></i> Editar
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <form method="POST" action="{{ route('voluntarios.toggle-ativo', $voluntario) }}"
-                                              @if ($voluntario->ativo) data-confirm="Inativar '{{ $voluntario->nome }}'? Ele deixará de aparecer como disponível para equipes." @endif>
-                                            @csrf
-                                            @method('PATCH')
-                                            @if ($voluntario->ativo)
-                                                <button type="submit" class="dropdown-item">
-                                                    <i class="bi bi-slash-circle me-2"></i> Inativar
-                                                </button>
-                                            @else
-                                                <button type="submit" class="dropdown-item">
-                                                    <i class="bi bi-check-circle me-2"></i> Reativar
-                                                </button>
-                                            @endif
-                                        </form>
-                                    </li>
-                                    <li>
-                                        <form method="POST" action="{{ route('voluntarios.destroy', $voluntario) }}"
-                                              data-confirm="Excluir '{{ $voluntario->nome }}'? Essa ação não pode ser desfeita.">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger">
-                                                <i class="bi bi-trash me-2"></i> Excluir
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                    <x-resource-card
+                        :title="$voluntario->nome"
+                        :subtitle="$voluntario->habilidade"
+                        :border-color="!$voluntario->ativo ? 'indisponivel' : ($disponibilidadeSlug[$voluntario->disponibilidade] ?? 'indisponivel')"
+                    >
+                        <x-slot:actions>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('voluntarios.edit', $voluntario) }}">
+                                    <i class="bi bi-pencil me-2"></i> Editar
+                                </a>
+                            </li>
+                            @if (!$voluntario->ativo)
+                                <li>
+                                    <form method="POST" action="{{ route('voluntarios.toggle-ativo', $voluntario) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-check-circle me-2"></i> Reativar
+                                        </button>
+                                    </form>
+                                </li>
+                            @endif
+                            <li>
+                                <form method="POST" action="{{ route('voluntarios.destroy', $voluntario) }}"
+                                      data-confirm="Excluir '{{ $voluntario->nome }}'? Essa ação não pode ser desfeita.">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash me-2"></i> Excluir
+                                    </button>
+                                </form>
+                            </li>
+                        </x-slot:actions>
 
-                        @if ($voluntario->telefone)
-                            <div class="equip-card-meta">
-                                <span class="row-item"><i class="bi bi-telephone"></i> {{ $voluntario->telefone }}</span>
+                        @if ($voluntario->equipeAtual)
+                            <div class="equip-card-context">
+                                <i class="bi bi-broadcast"></i>
+                                <span>
+                                    {{ $voluntario->equipeAtual->nome }}
+                                    @if ($voluntario->atendimentoAtual?->ocorrencia)
+                                        — Ocorrência #{{ $voluntario->atendimentoAtual->ocorrencia->id }}
+                                    @endif
+                                </span>
                             </div>
                         @endif
 
-                        <div class="equip-card-foot justify-content-end">
-                            @if (!$voluntario->ativo)
-                                <span class="status-badge status-badge-indisponivel"><i class="bi bi-slash-circle"></i> Inativo</span>
-                            @else
-                                <form method="POST" action="{{ route('voluntarios.disponibilidade', $voluntario) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <select name="disponibilidade" onchange="this.form.submit()"
-                                            class="status-pill-select status-pill-{{ $disponibilidadeSlug[$voluntario->disponibilidade] ?? 'indisponivel' }}">
-                                        @foreach ($disponibilidadeOpcoes as $opcao)
-                                            <option value="{{ $opcao }}" {{ $voluntario->disponibilidade === $opcao ? 'selected' : '' }}>{{ $opcao }}</option>
-                                        @endforeach
-                                    </select>
-                                </form>
-                            @endif
-                        </div>
-                    </div>
+                        <x-slot:footer>
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                @if ($telDigits)
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="tel:{{ $telDigits }}" class="row-item" title="Ligar para {{ $voluntario->nome }}">
+                                            <i class="bi bi-telephone-fill"></i> {{ $voluntario->telefone }}
+                                        </a>
+                                        <a href="https://wa.me/55{{ $telDigits }}" target="_blank" rel="noopener"
+                                           class="text-success" title="Chamar no WhatsApp">
+                                            <i class="bi bi-whatsapp"></i>
+                                        </a>
+                                    </div>
+                                @else
+                                    <span class="equip-card-inactive">Sem telefone</span>
+                                @endif
+
+                                @if (!$voluntario->ativo)
+                                    <x-status-badge text="Inativo" color="bg-danger" icon="bi-slash-circle" />
+                                @else
+                                    <div class="dropdown">
+                                        <button type="button"
+                                                class="status-badge status-badge-btn status-badge-{{ $disponibilidadeSlug[$voluntario->disponibilidade] ?? 'indisponivel' }} border-0"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            {{ $voluntario->disponibilidade }} <i class="bi bi-chevron-down"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                            <li>
+                                                <form method="POST" action="{{ route('voluntarios.disponibilidade', $voluntario) }}">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" name="disponibilidade" value="Disponível" class="dropdown-item text-success">
+                                                        <i class="bi bi-check-circle-fill me-2"></i> Disponível
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form method="POST" action="{{ route('voluntarios.disponibilidade', $voluntario) }}">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" name="disponibilidade" value="Indisponível" class="dropdown-item text-secondary">
+                                                        <i class="bi bi-dash-circle-fill me-2"></i> Indisponível
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form method="POST" action="{{ route('voluntarios.toggle-ativo', $voluntario) }}"
+                                                      data-confirm="Inativar '{{ $voluntario->nome }}'? Ele deixará de aparecer como disponível para equipes.">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="bi bi-power me-2"></i> Inativo
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                @endif
+                            </div>
+                        </x-slot:footer>
+                    </x-resource-card>
                 </div>
             @endforeach
         </div>
