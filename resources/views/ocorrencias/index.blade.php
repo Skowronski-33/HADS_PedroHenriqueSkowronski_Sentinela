@@ -4,26 +4,22 @@
 
 @php
     $corStatus = [
-        'Aberta' => 'bg-warning text-dark',
+        'Aberta' => 'bg-warning',
+        'Triada' => 'bg-primary',
         'Em Atendimento' => 'bg-info',
         'Encerrada' => 'bg-success',
-        'Cancelada' => 'bg-secondary',
+        'Descartada' => 'bg-secondary',
     ];
     $corPrioridade = [
         'Baixa' => 'bg-secondary',
         'Média' => 'bg-info',
-        'Alta' => 'bg-warning text-dark',
+        'Alta' => 'bg-warning',
         'Crítica' => 'bg-danger',
     ];
 @endphp
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h1 class="mb-0"><i class="bi bi-fire"></i> Ocorrências</h1>
-        <a href="{{ route('ocorrencias.create') }}" class="btn btn-primary btn-pill">
-            <i class="bi bi-plus-lg"></i> Registrar Ocorrência
-        </a>
-    </div>
+    <x-page-header title="Ocorrências" icon="bi-fire" action-route="ocorrencias.create" action-text="Registrar Ocorrência" />
 
     <div class="card">
         <div class="card-body border-bottom">
@@ -69,7 +65,7 @@
                         <tr>
                             <td>
                                 @if ($ocorrencia->prioridade)
-                                    <span class="badge {{ $corPrioridade[$ocorrencia->prioridade->nome] ?? 'bg-secondary' }}">{{ $ocorrencia->prioridade->nome }}</span>
+                                    <x-status-badge :text="$ocorrencia->prioridade->nome" :color="$corPrioridade[$ocorrencia->prioridade->nome] ?? 'bg-secondary'" />
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif
@@ -77,7 +73,7 @@
                             <td>{{ $ocorrencia->tipoOcorrencia->nome }}</td>
                             <td>{{ $ocorrencia->enderecoCompleto() }}</td>
                             <td>{{ $ocorrencia->data_hora->format('d/m/Y H:i') }}</td>
-                            <td><span class="badge {{ $corStatus[$ocorrencia->status] ?? 'bg-secondary' }}">{{ $ocorrencia->status }}</span></td>
+                            <td><x-status-badge :text="$ocorrencia->status" :color="$corStatus[$ocorrencia->status] ?? 'bg-secondary'" /></td>
                             <td class="text-end">
                                 <a href="{{ route('ocorrencias.show', $ocorrencia) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-eye"></i> Ver

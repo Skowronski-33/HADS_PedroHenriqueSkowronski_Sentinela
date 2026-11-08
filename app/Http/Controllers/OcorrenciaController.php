@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 class OcorrenciaController extends Controller
 {
-    public const STATUS_OPCOES = ['Aberta', 'Em Atendimento', 'Encerrada', 'Cancelada'];
+    public const STATUS_OPCOES = ['Aberta', 'Triada', 'Em Atendimento', 'Encerrada', 'Descartada'];
 
     public function index(Request $request)
     {
@@ -45,7 +45,6 @@ class OcorrenciaController extends Controller
     {
         return view('ocorrencias.create', [
             'tipos' => TipoOcorrencia::where('ativo', true)->orderBy('nome')->get(),
-            'prioridades' => Prioridade::where('ativo', true)->orderBy('id')->get(),
         ]);
     }
 
@@ -53,7 +52,6 @@ class OcorrenciaController extends Controller
     {
         $data = $request->validate([
             'tipo_ocorrencia_id' => ['required', 'exists:tipos_ocorrencia,id'],
-            'prioridade_id' => ['nullable', 'exists:prioridades,id'],
             'descricao' => ['required', 'string'],
             'endereco' => ['required', 'string', 'max:200'],
             'bairro' => ['nullable', 'string', 'max:100'],
@@ -90,6 +88,7 @@ class OcorrenciaController extends Controller
             'viaturasDisponiveis' => Viatura::where('ativo', true)->where('status', 'Disponível')->orderBy('identificacao')->get(),
             'equipamentosDisponiveis' => Equipamento::where('ativo', true)->orderBy('nome')->get(),
             'atendimentoStatusOpcoes' => AtendimentoController::STATUS_OPCOES,
+            'prioridades' => Prioridade::where('ativo', true)->orderBy('id')->get(),
         ]);
     }
 
@@ -98,7 +97,6 @@ class OcorrenciaController extends Controller
         return view('ocorrencias.edit', [
             'ocorrencia' => $ocorrencia,
             'tipos' => TipoOcorrencia::where('ativo', true)->orderBy('nome')->get(),
-            'prioridades' => Prioridade::where('ativo', true)->orderBy('id')->get(),
         ]);
     }
 
@@ -106,7 +104,6 @@ class OcorrenciaController extends Controller
     {
         $data = $request->validate([
             'tipo_ocorrencia_id' => ['required', 'exists:tipos_ocorrencia,id'],
-            'prioridade_id' => ['nullable', 'exists:prioridades,id'],
             'descricao' => ['required', 'string'],
             'endereco' => ['required', 'string', 'max:200'],
             'bairro' => ['nullable', 'string', 'max:100'],
@@ -123,8 +120,8 @@ class OcorrenciaController extends Controller
 
     public function encerrar(Ocorrencia $ocorrencia)
     {
-        if (in_array($ocorrencia->status, ['Encerrada', 'Cancelada'])) {
-            return back()->with('error', 'Esta ocorrência já está encerrada ou cancelada.');
+        if (in_array($ocorrencia->status, ['Encerrada', 'Descartada'])) {
+            return back()->with('error', 'Esta ocorrência já está encerrada ou descartada.');
         }
 
         $ocorrencia->update(['status' => 'Encerrada']);
@@ -132,18 +129,44 @@ class OcorrenciaController extends Controller
         return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Ocorrência encerrada com sucesso.');
     }
 
-    public function cancelar(Ocorrencia $ocorrencia)
+    public function triar(Ocorrencia $ocorrencia)
     {
-        if (in_array($ocorrencia->status, ['Encerrada', 'Cancelada'])) {
-            return back()->with('error', 'Esta ocorrência já está encerrada ou cancelada.');
+        if ($ocorrencia->status !== 'Aberta') {
+            return back()->with('error', 'Apenas ocorrências em aberto podem ser triadas.');
+        }
+
+        $ocorrencia->update(['status' => 'Triada']);
+
+        return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Ocorrência triada com sucesso. Agora ela pode ser classificada.');
+    }
+
+    public function classificar(Request $request, Ocorrencia $ocorrencia)
+    {
+        if (! in_array($ocorrencia->status, ['Triada', 'Em Atendimento'])) {
+            return back()->with('error', 'A ocorrência precisa ser triada antes de ser classificada.');
+        }
+
+        $data = $request->validate([
+            'prioridade_id' => ['required', 'exists:prioridades,id'],
+        ]);
+
+        $ocorrencia->update($data);
+
+        return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Ocorrência classificada com sucesso. Agora ela pode ser despachada.');
+    }
+
+    public function descartar(Ocorrencia $ocorrencia)
+    {
+        if (! in_array($ocorrencia->status, ['Aberta', 'Triada'])) {
+            return back()->with('error', 'Esta ocorrência não pode mais ser descartada.');
         }
 
         if ($ocorrencia->atendimentos()->count() > 0) {
-            return back()->with('error', 'Não é possível cancelar: já há atendimento(s) despachado(s) para esta ocorrência.');
+            return back()->with('error', 'Não é possível descartar: já há atendimento(s) despachado(s) para esta ocorrência.');
         }
 
-        $ocorrencia->update(['status' => 'Cancelada']);
+        $ocorrencia->update(['status' => 'Descartada']);
 
-        return redirect()->route('ocorrencias.index')->with('success', 'Ocorrência cancelada com sucesso.');
+        return redirect()->route('ocorrencias.index')->with('success', 'Ocorrência descartada com sucesso.');
     }
 }

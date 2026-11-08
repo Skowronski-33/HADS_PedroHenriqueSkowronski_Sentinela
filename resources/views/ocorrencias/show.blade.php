@@ -4,42 +4,51 @@
 
 @php
     $corStatus = [
-        'Aberta' => 'bg-warning text-dark',
+        'Aberta' => 'bg-warning',
+        'Triada' => 'bg-primary',
         'Em Atendimento' => 'bg-info',
         'Encerrada' => 'bg-success',
-        'Cancelada' => 'bg-secondary',
+        'Descartada' => 'bg-secondary',
     ];
     $corPrioridade = [
         'Baixa' => 'bg-secondary',
         'Média' => 'bg-info',
-        'Alta' => 'bg-warning text-dark',
+        'Alta' => 'bg-warning',
         'Crítica' => 'bg-danger',
     ];
     $corStatusAtendimento = [
-        'Em Deslocamento' => 'bg-warning text-dark',
+        'Em Deslocamento' => 'bg-warning',
         'No Local' => 'bg-info',
         'Concluído' => 'bg-success',
     ];
-    $podeDespachar = ! in_array($ocorrencia->status, ['Encerrada', 'Cancelada']);
+    $podeDespachar = in_array($ocorrencia->status, ['Triada', 'Em Atendimento']) && $ocorrencia->prioridade_id;
 @endphp
 
 @section('content')
-    <div class="page-header-sentinela d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-            <h1 class="mb-1">
-                <i class="bi bi-fire"></i> {{ $ocorrencia->tipoOcorrencia->nome }}
-                <span class="badge {{ $corStatus[$ocorrencia->status] ?? 'bg-secondary' }}">{{ $ocorrencia->status }}</span>
-                @if ($ocorrencia->prioridade)
-                    <span class="badge {{ $corPrioridade[$ocorrencia->prioridade->nome] ?? 'bg-secondary' }}">{{ $ocorrencia->prioridade->nome }}</span>
-                @endif
-            </h1>
-            <p class="text-muted mb-0"><i class="bi bi-geo-alt"></i> {{ $ocorrencia->enderecoCompleto() }}</p>
-        </div>
-        <div class="d-flex gap-2 flex-wrap">
+    <x-page-header icon="bi-fire">
+        <x-slot:title>
+            {{ $ocorrencia->tipoOcorrencia->nome }}
+            <x-status-badge :text="$ocorrencia->status" :color="$corStatus[$ocorrencia->status] ?? 'bg-secondary'" />
+            @if ($ocorrencia->prioridade)
+                <x-status-badge :text="$ocorrencia->prioridade->nome" :color="$corPrioridade[$ocorrencia->prioridade->nome] ?? 'bg-secondary'" />
+            @endif
+        </x-slot:title>
+        <x-slot:subtitle><i class="bi bi-geo-alt"></i> {{ $ocorrencia->enderecoCompleto() }}</x-slot:subtitle>
+        <x-slot:actions>
             <a href="{{ route('ocorrencias.edit', $ocorrencia) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-pencil"></i> Editar
             </a>
-            @if (in_array($ocorrencia->status, ['Aberta', 'Em Atendimento']))
+            @if ($ocorrencia->status === 'Aberta')
+                <form method="POST" action="{{ route('ocorrencias.triar', $ocorrencia) }}"
+                      data-confirm="Marcar esta ocorrência como triada?">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-clipboard-check"></i> Triar
+                    </button>
+                </form>
+            @endif
+            @if (in_array($ocorrencia->status, ['Triada', 'Em Atendimento']))
                 <form method="POST" action="{{ route('ocorrencias.encerrar', $ocorrencia) }}"
                       data-confirm="Encerrar esta ocorrência?">
                     @csrf
@@ -49,21 +58,21 @@
                     </button>
                 </form>
             @endif
-            @if ($ocorrencia->status === 'Aberta' && $ocorrencia->atendimentos->isEmpty())
-                <form method="POST" action="{{ route('ocorrencias.cancelar', $ocorrencia) }}"
-                      data-confirm="Cancelar esta ocorrência? Essa ação não pode ser desfeita.">
+            @if (in_array($ocorrencia->status, ['Aberta', 'Triada']) && $ocorrencia->atendimentos->isEmpty())
+                <form method="POST" action="{{ route('ocorrencias.descartar', $ocorrencia) }}"
+                      data-confirm="Descartar esta ocorrência como improcedente? Essa ação não pode ser desfeita.">
                     @csrf
                     @method('PATCH')
                     <button type="submit" class="btn btn-outline-danger">
-                        <i class="bi bi-x-circle"></i> Cancelar
+                        <i class="bi bi-x-circle"></i> Descartar
                     </button>
                 </form>
             @endif
             <a href="{{ route('ocorrencias.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i> Voltar
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="card mb-4">
         <div class="card-header"><i class="bi bi-info-circle"></i> Informações</div>
@@ -79,6 +88,45 @@
             @endif
         </div>
     </div>
+
+    @if ($ocorrencia->status === 'Aberta')
+        <div class="alert alert-warning d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle"></i>
+            Esta ocorrência ainda não foi triada. Realize a triagem para liberar a classificação e o despacho.
+        </div>
+    @endif
+
+    @if (in_array($ocorrencia->status, ['Triada', 'Em Atendimento']))
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-exclamation-triangle"></i> Classificação</div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('ocorrencias.classificar', $ocorrencia) }}" class="d-flex flex-wrap align-items-end gap-2">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <label for="prioridade_id" class="form-label">Prioridade</label>
+                        <select name="prioridade_id" id="prioridade_id" class="form-select @error('prioridade_id') is-invalid @enderror" style="width: 220px;" required>
+                            <option value="">Selecione...</option>
+                            @foreach ($prioridades as $prioridade)
+                                <option value="{{ $prioridade->id }}" {{ $ocorrencia->prioridade_id === $prioridade->id ? 'selected' : '' }}>
+                                    {{ $prioridade->nome }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('prioridade_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-check-lg"></i> {{ $ocorrencia->prioridade_id ? 'Reclassificar' : 'Classificar' }}
+                    </button>
+                </form>
+                @if (! $ocorrencia->prioridade_id)
+                    <div class="form-text text-warning mt-2">A ocorrência só pode ser despachada depois de classificada.</div>
+                @endif
+            </div>
+        </div>
+    @endif
 
     @if ($podeDespachar)
         <div class="card mb-4">
@@ -186,7 +234,7 @@
                             <td>{{ $atendimento->data_hora_retorno?->format('d/m/Y H:i') ?? '-' }}</td>
                             <td>
                                 @if ($atendimento->status === 'Concluído')
-                                    <span class="badge {{ $corStatusAtendimento[$atendimento->status] ?? 'bg-secondary' }}">{{ $atendimento->status }}</span>
+                                    <x-status-badge :text="$atendimento->status" :color="$corStatusAtendimento[$atendimento->status] ?? 'bg-secondary'" />
                                 @else
                                     <form method="POST" action="{{ route('ocorrencias.atendimentos.status', [$ocorrencia, $atendimento]) }}" class="d-inline">
                                         @csrf

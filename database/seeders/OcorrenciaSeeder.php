@@ -27,11 +27,34 @@ class OcorrenciaSeeder extends Seeder
             [
                 'user_id' => $admin->id,
                 'tipo_ocorrencia_id' => TipoOcorrencia::where('nome', 'Enchente/Alagamento')->value('id'),
-                'prioridade_id' => Prioridade::where('nome', 'Crítica')->value('id'),
                 'bairro' => 'Vila Esperança',
                 'cidade' => 'São Leopoldo',
                 'status' => 'Aberta',
                 'data_hora' => now()->subHours(2),
+            ]
+        );
+
+        $triada = Ocorrencia::firstOrCreate(
+            ['endereco' => 'Rua dos Andradas, 310', 'descricao' => 'Árvore de grande porte caída bloqueando parte da via após temporal.'],
+            [
+                'user_id' => $admin->id,
+                'tipo_ocorrencia_id' => TipoOcorrencia::where('nome', 'Outros')->value('id'),
+                'bairro' => 'Rio Branco',
+                'cidade' => 'São Leopoldo',
+                'status' => 'Triada',
+                'data_hora' => now()->subHour(),
+            ]
+        );
+
+        $descartada = Ocorrencia::firstOrCreate(
+            ['endereco' => 'Rua Fictícia, 999', 'descricao' => 'Chamado via rádio sem confirmação de outra fonte; não foi possível validar a informação.'],
+            [
+                'user_id' => $admin->id,
+                'tipo_ocorrencia_id' => TipoOcorrencia::where('nome', 'Outros')->value('id'),
+                'bairro' => 'Centro',
+                'cidade' => 'São Leopoldo',
+                'status' => 'Descartada',
+                'data_hora' => now()->subHours(3),
             ]
         );
 

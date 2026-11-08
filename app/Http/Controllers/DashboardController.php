@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $viaturasDisponiveis = Viatura::where('ativo', true)->where('status', 'Disponível')->count();
         $equipamentosDisponiveis = Equipamento::where('ativo', true)->where('status', 'Disponível')->count();
         $voluntariosDisponiveis = Voluntario::where('ativo', true)->where('disponibilidade', 'Disponível')->count();
-        $ocorrenciasAbertas = Ocorrencia::whereIn('status', ['Aberta', 'Em Atendimento'])->count();
+        $ocorrenciasAbertas = Ocorrencia::whereIn('status', ['Aberta', 'Triada', 'Em Atendimento'])->count();
 
         return view('dashboard', compact(
             'abrigosAtivos', 'pessoasAbrigadas', 'viaturasDisponiveis',

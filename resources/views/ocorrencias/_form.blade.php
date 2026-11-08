@@ -2,35 +2,22 @@
 
 <div class="form-section-title"><i class="bi bi-exclamation-triangle"></i> Classificação</div>
 
-<div class="row">
-    <div class="col-md-7 mb-3">
-        <label for="tipo_ocorrencia_id" class="form-label">Tipo de ocorrência</label>
-        <select name="tipo_ocorrencia_id" id="tipo_ocorrencia_id" class="form-select @error('tipo_ocorrencia_id') is-invalid @enderror" required>
-            <option value="">Selecione...</option>
-            @foreach ($tipos as $tipo)
-                <option value="{{ $tipo->id }}" {{ (int) old('tipo_ocorrencia_id', $ocorrencia->tipo_ocorrencia_id ?? 0) === $tipo->id ? 'selected' : '' }}>
-                    {{ $tipo->nome }}
-                </option>
-            @endforeach
-        </select>
-        @error('tipo_ocorrencia_id')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-    <div class="col-md-5 mb-3">
-        <label for="prioridade_id" class="form-label">Prioridade</label>
-        <select name="prioridade_id" id="prioridade_id" class="form-select @error('prioridade_id') is-invalid @enderror">
-            <option value="">Não definida</option>
-            @foreach ($prioridades as $prioridade)
-                <option value="{{ $prioridade->id }}" {{ (int) old('prioridade_id', $ocorrencia->prioridade_id ?? 0) === $prioridade->id ? 'selected' : '' }}>
-                    {{ $prioridade->nome }}
-                </option>
-            @endforeach
-        </select>
-        @error('prioridade_id')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
+<div class="mb-3">
+    <label for="tipo_ocorrencia_id" class="form-label">Tipo de ocorrência</label>
+    <select name="tipo_ocorrencia_id" id="tipo_ocorrencia_id" class="form-select @error('tipo_ocorrencia_id') is-invalid @enderror" required>
+        <option value="">Selecione...</option>
+        @foreach ($tipos as $tipo)
+            <option value="{{ $tipo->id }}" {{ (int) old('tipo_ocorrencia_id', $ocorrencia->tipo_ocorrencia_id ?? 0) === $tipo->id ? 'selected' : '' }}>
+                {{ $tipo->nome }}
+            </option>
+        @endforeach
+    </select>
+    @error('tipo_ocorrencia_id')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+    @if (! $isEdit)
+        <div class="form-text">A prioridade é definida depois, na etapa de classificação (após a triagem).</div>
+    @endif
 </div>
 
 <div class="mb-3">

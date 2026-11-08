@@ -16,8 +16,12 @@ class AtendimentoController extends Controller
 
     public function store(Request $request, Ocorrencia $ocorrencia)
     {
-        if (in_array($ocorrencia->status, ['Encerrada', 'Cancelada'])) {
-            return back()->with('error', 'Não é possível despachar um atendimento para uma ocorrência encerrada ou cancelada.');
+        if (! in_array($ocorrencia->status, ['Triada', 'Em Atendimento'])) {
+            return back()->with('error', 'A ocorrência precisa estar triada para ser despachada.');
+        }
+
+        if (! $ocorrencia->prioridade_id) {
+            return back()->with('error', 'A ocorrência precisa ser classificada (prioridade definida) antes de ser despachada.');
         }
 
         $data = $request->validate([
@@ -55,7 +59,7 @@ class AtendimentoController extends Controller
                 );
             }
 
-            if ($ocorrencia->status === 'Aberta') {
+            if ($ocorrencia->status === 'Triada') {
                 $ocorrencia->update(['status' => 'Em Atendimento']);
             }
 
