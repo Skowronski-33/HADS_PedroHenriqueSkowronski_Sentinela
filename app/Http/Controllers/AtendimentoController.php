@@ -34,7 +34,7 @@ class AtendimentoController extends Controller
                 Rule::exists('viaturas', 'id')->where('ativo', true)->where('status', 'Disponível'),
             ],
             'equipamentos' => ['nullable', 'array'],
-            'equipamentos.*' => ['exists:equipamentos,id'],
+            'equipamentos.*' => [Rule::exists('equipamentos', 'id')->where('ativo', true)->where('status', 'Disponível')],
             'quantidades' => ['nullable', 'array'],
             'quantidades.*' => ['integer', 'min:1'],
             'observacoes' => ['nullable', 'string'],

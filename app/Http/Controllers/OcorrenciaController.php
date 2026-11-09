@@ -9,6 +9,7 @@ use App\Models\Prioridade;
 use App\Models\TipoOcorrencia;
 use App\Models\Viatura;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OcorrenciaController extends Controller
 {
@@ -19,6 +20,8 @@ class OcorrenciaController extends Controller
         $busca = $request->query('busca');
         $status = $request->query('status');
         $prioridadeId = $request->query('prioridade_id');
+        $dataInicio = $request->query('data_inicio');
+        $dataFim = $request->query('data_fim');
 
         $ocorrencias = Ocorrencia::with(['tipoOcorrencia', 'prioridade'])
             ->when($busca, fn ($q) => $q->where(function ($q2) use ($busca) {
@@ -27,6 +30,8 @@ class OcorrenciaController extends Controller
             }))
             ->when($status, fn ($q) => $q->where('status', $status))
             ->when($prioridadeId, fn ($q) => $q->where('prioridade_id', $prioridadeId))
+            ->when($dataInicio, fn ($q) => $q->whereDate('data_hora', '>=', $dataInicio))
+            ->when($dataFim, fn ($q) => $q->whereDate('data_hora', '<=', $dataFim))
             ->orderByDesc('data_hora')
             ->paginate(15)
             ->withQueryString();
@@ -36,8 +41,12 @@ class OcorrenciaController extends Controller
             'busca' => $busca,
             'status' => $status,
             'prioridadeId' => $prioridadeId,
+            'dataInicio' => $dataInicio,
+            'dataFim' => $dataFim,
             'statusOpcoes' => self::STATUS_OPCOES,
             'prioridades' => Prioridade::where('ativo', true)->orderBy('id')->get(),
+            'tiposComContagem' => TipoOcorrencia::where('ativo', true)->withCount('ocorrencias')->orderBy('nome')->get(),
+            'prioridadesComContagem' => Prioridade::where('ativo', true)->withCount('ocorrencias')->orderBy('id')->get(),
         ]);
     }
 
@@ -86,7 +95,7 @@ class OcorrenciaController extends Controller
             'ocorrencia' => $ocorrencia,
             'equipesDisponiveis' => Equipe::where('ativo', true)->where('status', 'Disponível')->orderBy('nome')->get(),
             'viaturasDisponiveis' => Viatura::where('ativo', true)->where('status', 'Disponível')->orderBy('identificacao')->get(),
-            'equipamentosDisponiveis' => Equipamento::where('ativo', true)->orderBy('nome')->get(),
+            'equipamentosDisponiveis' => Equipamento::where('ativo', true)->where('status', 'Disponível')->orderBy('nome')->get(),
             'atendimentoStatusOpcoes' => AtendimentoController::STATUS_OPCOES,
             'prioridades' => Prioridade::where('ativo', true)->orderBy('id')->get(),
         ]);
@@ -124,7 +133,26 @@ class OcorrenciaController extends Controller
             return back()->with('error', 'Esta ocorrência já está encerrada ou descartada.');
         }
 
-        $ocorrencia->update(['status' => 'Encerrada']);
+        DB::transaction(function () use ($ocorrencia) {
+            $atendimentosAbertos = $ocorrencia->atendimentos()
+                ->whereIn('status', ['Em Deslocamento', 'No Local'])
+                ->with(['equipe', 'viatura'])
+                ->get();
+
+            foreach ($atendimentosAbertos as $atendimento) {
+                $atendimento->update(['status' => 'Concluído', 'data_hora_retorno' => now()]);
+
+                if ($atendimento->equipe && $atendimento->equipe->ativo) {
+                    $atendimento->equipe->update(['status' => 'Disponível']);
+                }
+
+                if ($atendimento->viatura && $atendimento->viatura->ativo) {
+                    $atendimento->viatura->update(['status' => 'Disponível']);
+                }
+            }
+
+            $ocorrencia->update(['status' => 'Encerrada']);
+        });
 
         return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Ocorrência encerrada com sucesso.');
     }

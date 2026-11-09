@@ -9,8 +9,10 @@ use App\Http\Controllers\EquipamentoController;
 use App\Http\Controllers\EquipeController;
 use App\Http\Controllers\OcorrenciaController;
 use App\Http\Controllers\PessoaAbrigadaController;
+use App\Http\Controllers\PrioridadeController;
 use App\Http\Controllers\RecursoController;
 use App\Http\Controllers\TipoEquipamentoController;
+use App\Http\Controllers\TipoOcorrenciaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViaturaController;
 use App\Http\Controllers\VoluntarioController;
@@ -126,5 +128,19 @@ Route::middleware('auth')->group(function () {
             ->name('ocorrencias.atendimentos.store');
         Route::patch('ocorrencias/{ocorrencia}/atendimentos/{atendimento}/status', [AtendimentoController::class, 'status'])
             ->name('ocorrencias.atendimentos.status');
+
+        Route::post('tipos-ocorrencia', [TipoOcorrenciaController::class, 'store'])
+            ->name('tipos-ocorrencia.store');
+        Route::patch('tipos-ocorrencia/{tipo}', [TipoOcorrenciaController::class, 'update'])
+            ->name('tipos-ocorrencia.update');
+        Route::delete('tipos-ocorrencia/{tipo}', [TipoOcorrenciaController::class, 'destroy'])
+            ->name('tipos-ocorrencia.destroy');
+
+        Route::post('prioridades', [PrioridadeController::class, 'store'])
+            ->name('prioridades.store');
+        Route::patch('prioridades/{prioridade}', [PrioridadeController::class, 'update'])
+            ->name('prioridades.update');
+        Route::delete('prioridades/{prioridade}', [PrioridadeController::class, 'destroy'])
+            ->name('prioridades.destroy');
     });
 });
