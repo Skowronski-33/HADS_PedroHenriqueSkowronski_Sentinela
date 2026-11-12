@@ -43,6 +43,17 @@
         @enderror
     </div>
     <div class="col-md-4 mb-3">
+        <label for="numero" class="form-label">Número <span class="text-muted">(Opcional)</span></label>
+        <input type="text" name="numero" id="numero"
+               class="form-control @error('numero') is-invalid @enderror"
+               value="{{ old('numero', $ocorrencia->numero ?? '') }}">
+        @error('numero')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4 mb-3">
         <label for="bairro" class="form-label">Bairro</label>
         <input type="text" name="bairro" id="bairro"
                class="form-control @error('bairro') is-invalid @enderror"
@@ -51,10 +62,7 @@
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
         <label for="cidade" class="form-label">Cidade</label>
         <input type="text" name="cidade" id="cidade"
                class="form-control @error('cidade') is-invalid @enderror"
@@ -63,7 +71,7 @@
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
         <label for="ponto_referencia" class="form-label">Ponto de referência <span class="text-muted">(Opcional)</span></label>
         <input type="text" name="ponto_referencia" id="ponto_referencia"
                class="form-control @error('ponto_referencia') is-invalid @enderror"

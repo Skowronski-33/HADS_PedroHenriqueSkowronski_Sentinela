@@ -13,6 +13,7 @@ class Ocorrencia extends Model
         'observacoes_triagem',
         'descricao',
         'endereco',
+        'numero',
         'bairro',
         'cidade',
         'ponto_referencia',
@@ -48,6 +49,12 @@ class Ocorrencia extends Model
 
     public function enderecoCompleto(): string
     {
-        return implode(' - ', array_filter([$this->endereco, $this->bairro, $this->cidade]));
+        $partes = [
+            trim($this->endereco.($this->numero ? ', '.$this->numero : '')),
+            $this->bairro,
+            $this->cidade,
+        ];
+
+        return implode(' - ', array_filter($partes));
     }
 }
