@@ -22,15 +22,24 @@
         'Concluído' => 'bg-success',
     ];
     $podeDespachar = in_array($ocorrencia->status, ['Triada', 'Em Atendimento']) && $ocorrencia->prioridade_id;
+    $podeTriar = in_array($ocorrencia->status, ['Aberta', 'Triada', 'Em Atendimento']);
+    $ehCritica = $ocorrencia->prioridade?->nome === 'Crítica';
+    $aguardandoEquipe = $podeDespachar && $equipesDisponiveis->isEmpty();
 @endphp
 
 @section('content')
     <x-page-header icon="bi-fire">
         <x-slot:title>
             {{ $ocorrencia->tipoOcorrencia->nome }}
+            @if ($ehCritica)
+                <i class="bi bi-exclamation-triangle-fill text-danger" title="Prioridade crítica — urgência máxima"></i>
+            @endif
             <x-status-badge :text="$ocorrencia->status" :color="$corStatus[$ocorrencia->status] ?? 'bg-secondary'" />
             @if ($ocorrencia->prioridade)
                 <x-status-badge :text="$ocorrencia->prioridade->nome" :color="$corPrioridade[$ocorrencia->prioridade->nome] ?? 'bg-secondary'" />
+            @endif
+            @if ($aguardandoEquipe)
+                <x-status-badge text="Aguardando Equipe" color="bg-warning" icon="bi-hourglass-split" />
             @endif
         </x-slot:title>
         <x-slot:subtitle><i class="bi bi-geo-alt"></i> {{ $ocorrencia->enderecoCompleto() }}</x-slot:subtitle>
@@ -38,15 +47,10 @@
             <a href="{{ route('ocorrencias.edit', $ocorrencia) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-pencil"></i> Editar
             </a>
-            @if ($ocorrencia->status === 'Aberta')
-                <form method="POST" action="{{ route('ocorrencias.triar', $ocorrencia) }}"
-                      data-confirm="Marcar esta ocorrência como triada?">
-                    @csrf
-                    @method('PATCH')
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-clipboard-check"></i> Triar
-                    </button>
-                </form>
+            @if ($podeTriar)
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTriagem">
+                    <i class="bi bi-clipboard-check"></i> {{ $ocorrencia->status === 'Aberta' ? 'Triar' : 'Revisar Triagem' }}
+                </button>
             @endif
             @if (in_array($ocorrencia->status, ['Triada', 'Em Atendimento']))
                 <form method="POST" action="{{ route('ocorrencias.encerrar', $ocorrencia) }}"
@@ -74,7 +78,7 @@
         </x-slot:actions>
     </x-page-header>
 
-    <div class="card mb-4">
+    <div class="card mb-4 {{ $ehCritica ? 'border-top border-danger border-4' : '' }}">
         <div class="card-header"><i class="bi bi-info-circle"></i> Informações</div>
         <div class="card-body">
             <p class="mb-2">{{ $ocorrencia->descricao }}</p>
@@ -84,47 +88,18 @@
             <p class="mb-2"><i class="bi bi-person text-muted"></i> <strong>Registrado por:</strong> {{ $ocorrencia->usuario->name }}</p>
             <p class="mb-2"><i class="bi bi-clock text-muted"></i> <strong>Data/hora:</strong> {{ $ocorrencia->data_hora->format('d/m/Y H:i') }}</p>
             @if ($ocorrencia->observacoes)
-                <p class="mb-0"><i class="bi bi-journal-text text-muted"></i> <strong>Observações:</strong> {{ $ocorrencia->observacoes }}</p>
+                <p class="mb-2"><i class="bi bi-journal-text text-muted"></i> <strong>Observações:</strong> {{ $ocorrencia->observacoes }}</p>
+            @endif
+            @if ($ocorrencia->observacoes_triagem)
+                <p class="mb-0"><i class="bi bi-clipboard-check text-muted"></i> <strong>Observações da triagem:</strong> {{ $ocorrencia->observacoes_triagem }}</p>
             @endif
         </div>
     </div>
 
     @if ($ocorrencia->status === 'Aberta')
-        <div class="alert alert-warning d-flex align-items-center gap-2">
+        <div class="alert alert-warning d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#modalTriagem" role="button" style="cursor: pointer;">
             <i class="bi bi-exclamation-triangle"></i>
-            Esta ocorrência ainda não foi triada. Realize a triagem para liberar a classificação e o despacho.
-        </div>
-    @endif
-
-    @if (in_array($ocorrencia->status, ['Triada', 'Em Atendimento']))
-        <div class="card mb-4">
-            <div class="card-header"><i class="bi bi-exclamation-triangle"></i> Classificação</div>
-            <div class="card-body">
-                <form method="POST" action="{{ route('ocorrencias.classificar', $ocorrencia) }}" class="d-flex flex-wrap align-items-end gap-2">
-                    @csrf
-                    @method('PATCH')
-                    <div>
-                        <label for="prioridade_id" class="form-label">Prioridade</label>
-                        <select name="prioridade_id" id="prioridade_id" class="form-select @error('prioridade_id') is-invalid @enderror" style="width: 220px;" required>
-                            <option value="">Selecione...</option>
-                            @foreach ($prioridades as $prioridade)
-                                <option value="{{ $prioridade->id }}" {{ $ocorrencia->prioridade_id === $prioridade->id ? 'selected' : '' }}>
-                                    {{ $prioridade->nome }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('prioridade_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <button type="submit" class="btn btn-outline-primary">
-                        <i class="bi bi-check-lg"></i> {{ $ocorrencia->prioridade_id ? 'Reclassificar' : 'Classificar' }}
-                    </button>
-                </form>
-                @if (! $ocorrencia->prioridade_id)
-                    <div class="form-text text-warning mt-2">A ocorrência só pode ser despachada depois de classificada.</div>
-                @endif
-            </div>
+            Esta ocorrência ainda não foi triada. Clique aqui para realizar a triagem e liberar o despacho.
         </div>
     @endif
 
@@ -132,6 +107,12 @@
         <div class="card mb-4">
             <div class="card-header"><i class="bi bi-truck"></i> Despachar Atendimento</div>
             <div class="card-body">
+                @if ($aguardandoEquipe)
+                    <div class="alert alert-warning d-flex align-items-center gap-2">
+                        <i class="bi bi-hourglass-split"></i>
+                        Nenhuma equipe disponível no momento. A ocorrência está triada e pronta para despacho assim que uma equipe for liberada.
+                    </div>
+                @endif
                 <form method="POST" action="{{ route('ocorrencias.atendimentos.store', $ocorrencia) }}">
                     @csrf
                     <div class="row">
@@ -143,9 +124,6 @@
                                     <option value="{{ $equipe->id }}">{{ $equipe->nome }} ({{ $equipe->tipoEquipe->nome }})</option>
                                 @endforeach
                             </select>
-                            @if ($equipesDisponiveis->isEmpty())
-                                <div class="form-text text-warning">Nenhuma equipe disponível no momento.</div>
-                            @endif
                             @error('equipe_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -257,4 +235,85 @@
             </table>
         </div>
     </div>
+
+    <div class="modal fade" id="modalTriagem" tabindex="-1" aria-labelledby="modalTriagemLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{{ route('ocorrencias.triar', $ocorrencia) }}">
+                    @csrf
+                    @method('PATCH')
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTriagemLabel"><i class="bi bi-clipboard-check"></i> Triagem de Ocorrência</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="tipo_ocorrencia_id" class="form-label">Tipo de Ocorrência</label>
+                            <select name="tipo_ocorrencia_id" id="tipo_ocorrencia_id"
+                                    class="form-select @error('tipo_ocorrencia_id', 'triagem') is-invalid @enderror" required>
+                                @foreach ($tipos as $tipo)
+                                    <option value="{{ $tipo->id }}" {{ $ocorrencia->tipo_ocorrencia_id === $tipo->id ? 'selected' : '' }}>
+                                        {{ $tipo->nome }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('tipo_ocorrencia_id', 'triagem')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="prioridade_id" class="form-label">Prioridade</label>
+                            <select name="prioridade_id" id="prioridade_id"
+                                    class="form-select @error('prioridade_id', 'triagem') is-invalid @enderror" required>
+                                <option value="" disabled {{ $ocorrencia->prioridade_id ? '' : 'selected' }}>Selecione...</option>
+                                @foreach ($prioridades as $prioridade)
+                                    @php
+                                        $corTexto = match ($prioridade->nome) {
+                                            'Baixa' => 'var(--bs-secondary)',
+                                            'Média' => 'var(--bs-info)',
+                                            'Alta' => 'var(--bs-warning)',
+                                            'Crítica' => 'var(--bs-danger)',
+                                            default => 'inherit',
+                                        };
+                                    @endphp
+                                    <option value="{{ $prioridade->id }}" style="color: {{ $corTexto }};"
+                                            {{ $ocorrencia->prioridade_id === $prioridade->id ? 'selected' : '' }}>
+                                        {{ $prioridade->nome }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('prioridade_id', 'triagem')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @else
+                                <div class="form-text">Define a ordem de atendimento e libera o despacho de recursos.</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-0">
+                            <label for="observacoes_triagem" class="form-label">Observações da Triagem <span class="text-muted">(Opcional)</span></label>
+                            <textarea name="observacoes_triagem" id="observacoes_triagem" rows="3"
+                                      class="form-control auto-resize @error('observacoes_triagem', 'triagem') is-invalid @enderror"
+                                      style="resize: none; overflow: hidden;">{{ old('observacoes_triagem', $ocorrencia->observacoes_triagem) }}</textarea>
+                            @error('observacoes_triagem', 'triagem')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg"></i> Confirmar Triagem
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @if ($errors->triagem->any())
+        <script>
+            new bootstrap.Modal(document.getElementById('modalTriagem')).show();
+        </script>
+    @endif
 @endsection

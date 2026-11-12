@@ -119,8 +119,6 @@ Route::middleware('auth')->group(function () {
             ->name('ocorrencias.encerrar');
         Route::patch('ocorrencias/{ocorrencia}/triar', [OcorrenciaController::class, 'triar'])
             ->name('ocorrencias.triar');
-        Route::patch('ocorrencias/{ocorrencia}/classificar', [OcorrenciaController::class, 'classificar'])
-            ->name('ocorrencias.classificar');
         Route::patch('ocorrencias/{ocorrencia}/descartar', [OcorrenciaController::class, 'descartar'])
             ->name('ocorrencias.descartar');
 

@@ -10,6 +10,7 @@ class Ocorrencia extends Model
         'user_id',
         'tipo_ocorrencia_id',
         'prioridade_id',
+        'observacoes_triagem',
         'descricao',
         'endereco',
         'bairro',

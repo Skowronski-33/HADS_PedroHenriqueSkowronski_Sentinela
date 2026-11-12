@@ -97,6 +97,7 @@ class OcorrenciaController extends Controller
             'viaturasDisponiveis' => Viatura::where('ativo', true)->where('status', 'Disponível')->orderBy('identificacao')->get(),
             'equipamentosDisponiveis' => Equipamento::where('ativo', true)->where('status', 'Disponível')->orderBy('nome')->get(),
             'atendimentoStatusOpcoes' => AtendimentoController::STATUS_OPCOES,
+            'tipos' => TipoOcorrencia::where('ativo', true)->orderBy('nome')->get(),
             'prioridades' => Prioridade::where('ativo', true)->orderBy('id')->get(),
         ]);
     }
@@ -157,30 +158,25 @@ class OcorrenciaController extends Controller
         return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Ocorrência encerrada com sucesso.');
     }
 
-    public function triar(Ocorrencia $ocorrencia)
+    public function triar(Request $request, Ocorrencia $ocorrencia)
     {
-        if ($ocorrencia->status !== 'Aberta') {
-            return back()->with('error', 'Apenas ocorrências em aberto podem ser triadas.');
+        if (! in_array($ocorrencia->status, ['Aberta', 'Triada', 'Em Atendimento'])) {
+            return back()->with('error', 'Esta ocorrência não pode mais ser triada.');
         }
 
-        $ocorrencia->update(['status' => 'Triada']);
-
-        return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Ocorrência triada com sucesso. Agora ela pode ser classificada.');
-    }
-
-    public function classificar(Request $request, Ocorrencia $ocorrencia)
-    {
-        if (! in_array($ocorrencia->status, ['Triada', 'Em Atendimento'])) {
-            return back()->with('error', 'A ocorrência precisa ser triada antes de ser classificada.');
-        }
-
-        $data = $request->validate([
+        $data = $request->validateWithBag('triagem', [
+            'tipo_ocorrencia_id' => ['required', 'exists:tipos_ocorrencia,id'],
             'prioridade_id' => ['required', 'exists:prioridades,id'],
+            'observacoes_triagem' => ['nullable', 'string'],
         ]);
+
+        if ($ocorrencia->status === 'Aberta') {
+            $data['status'] = 'Triada';
+        }
 
         $ocorrencia->update($data);
 
-        return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Ocorrência classificada com sucesso. Agora ela pode ser despachada.');
+        return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Triagem registrada com sucesso. A ocorrência já pode ser despachada.');
     }
 
     public function descartar(Ocorrencia $ocorrencia)
