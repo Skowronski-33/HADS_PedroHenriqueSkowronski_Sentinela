@@ -68,12 +68,15 @@ class DonativoController extends Controller
 
     public function entrada(Request $request, Abrigo $abrigo, Donativo $donativo)
     {
-        $data = $request->validate([
+        $data = $request->validateWithBag('donativo_entrada', [
             'quantidade' => ['required', 'integer', 'min:1'],
+            'data_hora' => ['nullable', 'date'],
             'observacoes' => ['nullable', 'string'],
         ]);
 
-        DB::transaction(function () use ($data, $abrigo, $donativo, $request) {
+        $dataHora = $data['data_hora'] ?? now();
+
+        DB::transaction(function () use ($data, $dataHora, $abrigo, $donativo, $request) {
             $donativo->increment('estoque_atual', $data['quantidade']);
 
             MovimentacaoDonativo::create([
@@ -81,7 +84,7 @@ class DonativoController extends Controller
                 'user_id' => $request->user()->id,
                 'tipo_movimentacao' => 'entrada',
                 'quantidade' => $data['quantidade'],
-                'data_hora' => now(),
+                'data_hora' => $dataHora,
                 'observacoes' => $data['observacoes'] ?? null,
             ]);
         });
@@ -92,8 +95,9 @@ class DonativoController extends Controller
 
     public function saida(Request $request, Abrigo $abrigo, Donativo $donativo)
     {
-        $data = $request->validate([
+        $data = $request->validateWithBag('donativo_saida', [
             'quantidade' => ['required', 'integer', 'min:1'],
+            'data_hora' => ['nullable', 'date'],
             'observacoes' => ['nullable', 'string'],
         ]);
 
@@ -102,7 +106,9 @@ class DonativoController extends Controller
                 ->with('error', "Saída não permitida: estoque atual de \"{$donativo->tipo}\" é {$donativo->estoque_atual} {$donativo->unidade_medida}.");
         }
 
-        DB::transaction(function () use ($data, $abrigo, $donativo, $request) {
+        $dataHora = $data['data_hora'] ?? now();
+
+        DB::transaction(function () use ($data, $dataHora, $abrigo, $donativo, $request) {
             $donativo->decrement('estoque_atual', $data['quantidade']);
 
             MovimentacaoDonativo::create([
@@ -110,7 +116,7 @@ class DonativoController extends Controller
                 'user_id' => $request->user()->id,
                 'tipo_movimentacao' => 'saida',
                 'quantidade' => $data['quantidade'],
-                'data_hora' => now(),
+                'data_hora' => $dataHora,
                 'observacoes' => $data['observacoes'] ?? null,
             ]);
         });
@@ -120,9 +126,10 @@ class DonativoController extends Controller
 
     public function transferir(Request $request, Abrigo $abrigo, Donativo $donativo)
     {
-        $data = $request->validate([
+        $data = $request->validateWithBag('donativo_transferir', [
             'abrigo_destino_id' => ['required', 'integer', 'exists:abrigos,id'],
             'quantidade' => ['required', 'integer', 'min:1'],
+            'data_hora' => ['nullable', 'date'],
             'observacoes' => ['nullable', 'string'],
         ], [], ['abrigo_destino_id' => 'abrigo de destino']);
 
@@ -137,8 +144,9 @@ class DonativoController extends Controller
         }
 
         $destino = Abrigo::findOrFail($data['abrigo_destino_id']);
+        $dataHora = $data['data_hora'] ?? now();
 
-        DB::transaction(function () use ($data, $abrigo, $donativo, $destino, $request) {
+        DB::transaction(function () use ($data, $dataHora, $abrigo, $donativo, $destino, $request) {
             $donativo->decrement('estoque_atual', $data['quantidade']);
 
             // Localiza o mesmo item no abrigo de destino (mesmo tipo + unidade) ou cria um novo registro.
@@ -166,7 +174,7 @@ class DonativoController extends Controller
                 'user_id' => $request->user()->id,
                 'tipo_movimentacao' => 'saida',
                 'quantidade' => $data['quantidade'],
-                'data_hora' => now(),
+                'data_hora' => $dataHora,
                 'observacoes' => "Transferência para \"{$destino->nome}\"".($nota ? " — {$nota}" : ''),
             ]);
 
@@ -175,7 +183,7 @@ class DonativoController extends Controller
                 'user_id' => $request->user()->id,
                 'tipo_movimentacao' => 'entrada',
                 'quantidade' => $data['quantidade'],
-                'data_hora' => now(),
+                'data_hora' => $dataHora,
                 'observacoes' => "Transferência de \"{$abrigo->nome}\"".($nota ? " — {$nota}" : ''),
             ]);
 
@@ -184,7 +192,7 @@ class DonativoController extends Controller
                 'donativo_destino_id' => $donativoDestino->id,
                 'quantidade' => $data['quantidade'],
                 'user_id' => $request->user()->id,
-                'data_hora' => now(),
+                'data_hora' => $dataHora,
                 'observacoes' => $nota,
             ]);
         });

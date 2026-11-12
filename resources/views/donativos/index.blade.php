@@ -26,13 +26,14 @@
                 <p class="mb-0 text-muted">
                     Mostrando {{ $donativos->count() }} de {{ $donativos->total() }} itens
                 </p>
-                <form method="GET" action="{{ route('abrigos.donativos.index', $abrigo) }}" class="d-flex gap-2">
-                    <input type="text" name="busca" value="{{ $busca }}" class="form-control form-control-sm" placeholder="Buscar por item...">
-                    <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap">
-                        <i class="bi bi-search"></i>
-                    </button>
+                <form method="GET" action="{{ route('abrigos.donativos.index', $abrigo) }}" class="d-flex align-items-center gap-2">
+                    <div class="input-group input-group-sm" style="width: 260px;">
+                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="busca" value="{{ $busca }}" class="form-control" placeholder="Buscar por item...">
+                        <button type="submit" class="btn btn-outline-secondary" title="Buscar"><i class="bi bi-search"></i></button>
+                    </div>
                     @if ($busca)
-                        <a href="{{ route('abrigos.donativos.index', $abrigo) }}" class="btn btn-sm btn-outline-secondary text-nowrap">Limpar</a>
+                        <button type="button" data-href="{{ route('abrigos.donativos.index', $abrigo) }}" class="btn btn-sm btn-outline-secondary text-nowrap">Limpar</button>
                     @endif
                 </form>
             </div>
@@ -49,6 +50,13 @@
                 </thead>
                 <tbody>
                     @forelse ($donativos as $donativo)
+                        @php
+                            $corEstoque = match (true) {
+                                $donativo->estoque_atual <= 0 => 'bg-danger',
+                                $donativo->estoque_atual <= 10 => 'bg-warning text-dark',
+                                default => 'bg-info',
+                            };
+                        @endphp
                         <tr>
                             <td>
                                 {{ $donativo->tipo }}
@@ -58,45 +66,32 @@
                             </td>
                             <td>{{ $donativo->unidade_medida }}</td>
                             <td>
-                                <span class="badge {{ $donativo->estoque_atual > 0 ? 'bg-info' : 'bg-secondary' }}">
-                                    {{ $donativo->estoque_atual }}
-                                </span>
+                                <span class="badge {{ $corEstoque }}">{{ $donativo->estoque_atual }}</span>
+                                @if ($donativo->estoque_atual <= 0)
+                                    <br><small class="text-danger">Esgotado</small>
+                                @elseif ($donativo->estoque_atual <= 10)
+                                    <br><small class="text-warning">Estoque baixo</small>
+                                @endif
                             </td>
                             <td class="text-end">
-                                <div class="d-flex gap-2 justify-content-end flex-wrap">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                <div class="d-flex gap-1 justify-content-end flex-wrap">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Editar item"
                                             onclick="abrirModalEditarDonativo({{ $donativo->id }}, {{ json_encode($donativo->tipo) }}, {{ json_encode($donativo->descricao) }}, {{ json_encode($donativo->unidade_medida) }})">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <form method="POST" action="{{ route('abrigos.donativos.entrada', [$abrigo, $donativo]) }}" class="d-flex gap-1">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="number" name="quantidade" min="1" class="form-control form-control-sm" style="width: 70px;" placeholder="Qtd." required>
-                                        <button type="submit" class="btn btn-sm btn-success text-nowrap" title="Registrar entrada (recebimento)">
-                                            <i class="bi bi-box-arrow-in-down"></i> Entrada
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ route('abrigos.donativos.saida', [$abrigo, $donativo]) }}" class="d-flex gap-1">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="number" name="quantidade" min="1" class="form-control form-control-sm" style="width: 70px;" placeholder="Qtd." required>
-                                        <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap">Saída</button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-success text-nowrap" title="Registrar entrada (recebimento)"
+                                            onclick="abrirModalEntrada({{ $donativo->id }}, {{ json_encode($donativo->tipo) }}, {{ json_encode($donativo->unidade_medida) }})">
+                                        <i class="bi bi-box-arrow-in-down"></i> Entrada
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger text-nowrap" title="Registrar saída"
+                                            onclick="abrirModalSaida({{ $donativo->id }}, {{ json_encode($donativo->tipo) }}, {{ $donativo->estoque_atual }}, {{ json_encode($donativo->unidade_medida) }})">
+                                        <i class="bi bi-box-arrow-up"></i> Saída
+                                    </button>
                                     @if ($outrosAbrigos->isNotEmpty())
-                                        <form method="POST" action="{{ route('abrigos.donativos.transferir', [$abrigo, $donativo]) }}" class="d-flex gap-1">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="number" name="quantidade" min="1" class="form-control form-control-sm" style="width: 70px;" placeholder="Qtd." required>
-                                            <select name="abrigo_destino_id" class="form-select form-select-sm" style="width: 150px;" required>
-                                                <option value="">Transferir para...</option>
-                                                @foreach ($outrosAbrigos as $outro)
-                                                    <option value="{{ $outro->id }}">{{ $outro->nome }}</option>
-                                                @endforeach
-                                            </select>
-                                            <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">
-                                                <i class="bi bi-arrow-left-right"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" title="Transferir para outro abrigo"
+                                                onclick="abrirModalTransferir({{ $donativo->id }}, {{ json_encode($donativo->tipo) }}, {{ $donativo->estoque_atual }}, {{ json_encode($donativo->unidade_medida) }})">
+                                            <i class="bi bi-arrow-left-right"></i> Transferir
+                                        </button>
                                     @endif
                                 </div>
                             </td>
@@ -218,8 +213,171 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalEntrada" tabindex="-1" aria-labelledby="modalEntradaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" id="formEntrada" action="">
+                    @csrf
+                    @method('PATCH')
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalEntradaLabel">
+                            <i class="bi bi-box-arrow-in-down text-success"></i> Registrar Entrada: <span id="entradaItemNome"></span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Quantidade</label>
+                            <div class="input-group">
+                                <input type="number" name="quantidade" min="1"
+                                       class="form-control @error('quantidade', 'donativo_entrada') is-invalid @enderror" required autofocus>
+                                <span class="input-group-text" id="entradaUnidade"></span>
+                            </div>
+                            @error('quantidade', 'donativo_entrada')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data <span class="text-muted">(Opcional — assume agora se vazio)</span></label>
+                            <input type="date" name="data_hora" class="form-control @error('data_hora', 'donativo_entrada') is-invalid @enderror">
+                            @error('data_hora', 'donativo_entrada')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Observações <span class="text-muted">(Opcional)</span></label>
+                            <textarea name="observacoes" rows="2"
+                                      class="form-control auto-resize @error('observacoes', 'donativo_entrada') is-invalid @enderror"
+                                      style="resize: none; overflow: hidden;"></textarea>
+                            @error('observacoes', 'donativo_entrada')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Confirmar Entrada</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalSaida" tabindex="-1" aria-labelledby="modalSaidaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" id="formSaida" action="">
+                    @csrf
+                    @method('PATCH')
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalSaidaLabel">
+                            <i class="bi bi-box-arrow-up text-danger"></i> Registrar Saída: <span id="saidaItemNome"></span>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small">Estoque atual: <strong id="saidaEstoqueAtual"></strong></p>
+                        <div class="mb-3">
+                            <label class="form-label">Quantidade</label>
+                            <div class="input-group">
+                                <input type="number" name="quantidade" id="saidaQuantidadeInput" min="1"
+                                       class="form-control @error('quantidade', 'donativo_saida') is-invalid @enderror" required autofocus>
+                                <span class="input-group-text" id="saidaUnidade"></span>
+                            </div>
+                            @error('quantidade', 'donativo_saida')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Data <span class="text-muted">(Opcional — assume agora se vazio)</span></label>
+                            <input type="date" name="data_hora" class="form-control @error('data_hora', 'donativo_saida') is-invalid @enderror">
+                            @error('data_hora', 'donativo_saida')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Observações <span class="text-muted">(Opcional)</span></label>
+                            <textarea name="observacoes" rows="2"
+                                      class="form-control auto-resize @error('observacoes', 'donativo_saida') is-invalid @enderror"
+                                      style="resize: none; overflow: hidden;"></textarea>
+                            @error('observacoes', 'donativo_saida')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-check-lg"></i> Confirmar Saída</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @if ($outrosAbrigos->isNotEmpty())
+        <div class="modal fade" id="modalTransferir" tabindex="-1" aria-labelledby="modalTransferirLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST" id="formTransferir" action="">
+                        @csrf
+                        @method('PATCH')
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalTransferirLabel">
+                                <i class="bi bi-arrow-left-right text-primary"></i> Transferir: <span id="transferirItemNome"></span>
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted small">Estoque atual: <strong id="transferirEstoqueAtual"></strong></p>
+                            <div class="mb-3">
+                                <label class="form-label">Abrigo de destino</label>
+                                <select name="abrigo_destino_id"
+                                        class="form-select @error('abrigo_destino_id', 'donativo_transferir') is-invalid @enderror" required>
+                                    <option value="">Selecione...</option>
+                                    @foreach ($outrosAbrigos as $outro)
+                                        <option value="{{ $outro->id }}">{{ $outro->nome }}</option>
+                                    @endforeach
+                                </select>
+                                @error('abrigo_destino_id', 'donativo_transferir')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Quantidade</label>
+                                <div class="input-group">
+                                    <input type="number" name="quantidade" id="transferirQuantidadeInput" min="1"
+                                           class="form-control @error('quantidade', 'donativo_transferir') is-invalid @enderror" required>
+                                    <span class="input-group-text" id="transferirUnidade"></span>
+                                </div>
+                                @error('quantidade', 'donativo_transferir')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label">Observações <span class="text-muted">(Opcional)</span></label>
+                                <textarea name="observacoes" rows="2"
+                                          class="form-control auto-resize @error('observacoes', 'donativo_transferir') is-invalid @enderror"
+                                          style="resize: none; overflow: hidden;"></textarea>
+                                @error('observacoes', 'donativo_transferir')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Confirmar Transferência</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <script>
         const donativoUpdateUrlTemplate = @json(route('abrigos.donativos.update', [$abrigo, '__ID__']));
+        const donativoEntradaUrlTemplate = @json(route('abrigos.donativos.entrada', [$abrigo, '__ID__']));
+        const donativoSaidaUrlTemplate = @json(route('abrigos.donativos.saida', [$abrigo, '__ID__']));
+        const donativoTransferirUrlTemplate = @json(route('abrigos.donativos.transferir', [$abrigo, '__ID__']));
 
         function abrirModalEditarDonativo(id, tipo, descricao, unidade) {
             document.getElementById('formEditarDonativo').action = donativoUpdateUrlTemplate.replace('__ID__', id);
@@ -228,6 +386,38 @@
             document.getElementById('editarDonativoDescricao').value = descricao || '';
             document.getElementById('editarDonativoUnidade').value = unidade;
             new bootstrap.Modal(document.getElementById('modalEditarDonativo')).show();
+        }
+
+        function abrirModalEntrada(id, nome, unidade) {
+            const form = document.getElementById('formEntrada');
+            form.reset();
+            form.action = donativoEntradaUrlTemplate.replace('__ID__', id);
+            document.getElementById('entradaItemNome').textContent = nome;
+            document.getElementById('entradaUnidade').textContent = unidade;
+            new bootstrap.Modal(document.getElementById('modalEntrada')).show();
+        }
+
+        function abrirModalSaida(id, nome, estoque, unidade) {
+            const form = document.getElementById('formSaida');
+            form.reset();
+            form.action = donativoSaidaUrlTemplate.replace('__ID__', id);
+            document.getElementById('saidaItemNome').textContent = nome;
+            document.getElementById('saidaEstoqueAtual').textContent = estoque + ' ' + unidade;
+            document.getElementById('saidaUnidade').textContent = unidade;
+            document.getElementById('saidaQuantidadeInput').max = estoque;
+            new bootstrap.Modal(document.getElementById('modalSaida')).show();
+        }
+
+        function abrirModalTransferir(id, nome, estoque, unidade) {
+            const form = document.getElementById('formTransferir');
+            if (!form) return;
+            form.reset();
+            form.action = donativoTransferirUrlTemplate.replace('__ID__', id);
+            document.getElementById('transferirItemNome').textContent = nome;
+            document.getElementById('transferirEstoqueAtual').textContent = estoque + ' ' + unidade;
+            document.getElementById('transferirUnidade').textContent = unidade;
+            document.getElementById('transferirQuantidadeInput').max = estoque;
+            new bootstrap.Modal(document.getElementById('modalTransferir')).show();
         }
     </script>
 
