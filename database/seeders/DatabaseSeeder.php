@@ -15,6 +15,9 @@ class DatabaseSeeder extends Seeder
             EquipamentoSeeder::class,
             ViaturaSeeder::class,
             EquipeSeeder::class,
+            AbrigoSeeder::class,
+            DonativoSeeder::class,
+            PessoaAbrigadaSeeder::class,
             OcorrenciaSeeder::class,
         ]);
     }
