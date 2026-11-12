@@ -49,9 +49,9 @@
                     >
                         <x-slot:actions>
                             <li>
-                                <a class="dropdown-item" href="{{ route('equipes.edit', $equipe) }}">
+                                <button type="button" class="dropdown-item" data-href="{{ route('equipes.edit', $equipe) }}">
                                     <i class="bi bi-pencil me-2"></i> Editar
-                                </a>
+                                </button>
                             </li>
                             <li>
                                 <form method="POST" action="{{ route('equipes.toggle-ativo', $equipe) }}"

@@ -31,9 +31,9 @@
                                 <x-status-badge :text="$user->ativo ? 'Ativo' : 'Inativo'" :color="$user->ativo ? 'disponivel' : 'indisponivel'" />
                             </td>
                             <td class="text-end">
-                                <a href="{{ route('usuarios.edit', $user) }}" class="btn btn-sm btn-outline-secondary">
+                                <button type="button" data-href="{{ route('usuarios.edit', $user) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-pencil"></i> Editar
-                                </a>
+                                </button>
                                 <form action="{{ route('usuarios.reset-password', $user) }}" method="POST" class="d-inline"
                                       data-confirm="Redefinir a senha de {{ $user->name }}? Uma nova senha temporária será gerada.">
                                     @csrf

@@ -21,12 +21,12 @@
 
     <form method="GET" action="{{ route('recursos.index') }}" class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div class="btn-group" role="group">
-            <a href="{{ route('recursos.index', ['busca' => $busca]) }}"
-               class="btn btn-sm {{ !$tipo ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</a>
-            <a href="{{ route('recursos.index', ['busca' => $busca, 'tipo' => 'Equipamento']) }}"
-               class="btn btn-sm {{ $tipo === 'Equipamento' ? 'btn-primary' : 'btn-outline-secondary' }}">Equipamentos</a>
-            <a href="{{ route('recursos.index', ['busca' => $busca, 'tipo' => 'Viatura']) }}"
-               class="btn btn-sm {{ $tipo === 'Viatura' ? 'btn-primary' : 'btn-outline-secondary' }}">Viaturas</a>
+            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca]) }}"
+               class="btn btn-sm {{ !$tipo ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</button>
+            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca, 'tipo' => 'Equipamento']) }}"
+               class="btn btn-sm {{ $tipo === 'Equipamento' ? 'btn-primary' : 'btn-outline-secondary' }}">Equipamentos</button>
+            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca, 'tipo' => 'Viatura']) }}"
+               class="btn btn-sm {{ $tipo === 'Viatura' ? 'btn-primary' : 'btn-outline-secondary' }}">Viaturas</button>
         </div>
         <div class="search-inline" style="width: 300px; max-width: 100%;">
             <i class="bi bi-search"></i>

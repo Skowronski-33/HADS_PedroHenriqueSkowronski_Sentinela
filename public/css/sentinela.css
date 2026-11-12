@@ -45,6 +45,17 @@ body {
     color: var(--sentinela-amber-500);
 }
 
+/* Links convertidos para data-href (evita o preview de URL do navegador ao passar o mouse),
+   mas que continuam com aparência e cursor de link clicável. */
+a[data-href] {
+    cursor: pointer;
+}
+
+.pagination button.page-link {
+    font: inherit;
+    cursor: pointer;
+}
+
 /* Botões primários (herdado por todo o app: Salvar, Novo Usuário, Cadastrar...) */
 .btn-primary {
     --bs-btn-bg: var(--sentinela-amber-600);
@@ -457,6 +468,7 @@ body {
 }
 
 .equip-card {
+    position: relative;
     background: #fff;
     border: 1px solid #e5e9ef;
     border-radius: 1rem;
@@ -522,6 +534,11 @@ body {
     color: #5b6879;
 }
 
+/* Card de Viatura: sem ícone quadrado, título com um pouco mais de destaque */
+.viatura-card .equip-card-name {
+    font-size: 1.1rem;
+}
+
 /* Variações de cor do tag-chip por categoria (habilidade do voluntário, tipo da viatura) */
 .tag-chip-slate { background: #f1f3f6; color: #5b6879; }
 .tag-chip-red { background: #fdecea; color: #c23b3b; }
@@ -531,7 +548,28 @@ body {
 .tag-chip-amber { background: #fbf0dd; color: #a3690d; }
 .tag-chip-green { background: #e3f6ea; color: #157a45; }
 
-/* Menu de contexto "⋮" */
+/* Badge de quantidade no topo direito do card (ex: Equipamentos) */
+.equip-card-qty-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .25rem .6rem;
+    border-radius: 100px;
+    font-size: .72rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--sentinela-navy-800);
+    white-space: nowrap;
+}
+
+/* Menu de contexto "⋮": fica acima de um eventual .stretched-link do card
+   (ex: botão de ação primária no rodapé do card de Abrigo), senão o clique
+   no menu seria "roubado" pelo link esticado. */
+.equip-card .dropdown {
+    position: relative;
+    z-index: 2;
+}
+
 .equip-card-menu-btn {
     border: none;
     background: transparent;

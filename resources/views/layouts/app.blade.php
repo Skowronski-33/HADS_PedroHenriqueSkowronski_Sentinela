@@ -12,65 +12,65 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark navbar-sentinela">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ route('dashboard') }}">
+            <a class="navbar-brand" data-href="{{ route('dashboard') }}" role="link" tabindex="0">
                 <i class="bi bi-shield-fill-check"></i> Sentinela
             </a>
             @auth
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                        <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" data-href="{{ route('dashboard') }}" role="link" tabindex="0">
                             <i class="bi bi-speedometer2"></i> Painel
                         </a>
                     </li>
                     @role('Admin')
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" href="{{ route('usuarios.index') }}">
+                            <a class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" data-href="{{ route('usuarios.index') }}" role="link" tabindex="0">
                                 <i class="bi bi-people"></i> Usuários
                             </a>
                         </li>
                     @endrole
                     @hasanyrole('Atendente de Ocorrências|Gerente Operacional|Admin')
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('ocorrencias.*') ? 'active' : '' }}" href="{{ route('ocorrencias.index') }}">
+                            <a class="nav-link {{ request()->routeIs('ocorrencias.*') ? 'active' : '' }}" data-href="{{ route('ocorrencias.index') }}" role="link" tabindex="0">
                                 <i class="bi bi-fire"></i> Ocorrências
                             </a>
                         </li>
                     @endhasanyrole
                     @hasanyrole('Gerenciador de Abrigo|Admin')
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('abrigos.*') ? 'active' : '' }}" href="{{ route('abrigos.index') }}">
+                            <a class="nav-link {{ request()->routeIs('abrigos.*') ? 'active' : '' }}" data-href="{{ route('abrigos.index') }}" role="link" tabindex="0">
                                 <i class="bi bi-houses"></i> Abrigos
                             </a>
                         </li>
                     @endhasanyrole
                     @hasanyrole('Gerente Operacional|Admin')
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('viaturas.*') ? 'active' : '' }}" href="{{ route('viaturas.index') }}">
+                            <a class="nav-link {{ request()->routeIs('viaturas.*') ? 'active' : '' }}" data-href="{{ route('viaturas.index') }}" role="link" tabindex="0">
                                 <i class="bi bi-truck"></i> Viaturas
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('equipamentos.*') ? 'active' : '' }}" href="{{ route('equipamentos.index') }}">
+                            <a class="nav-link {{ request()->routeIs('equipamentos.*') ? 'active' : '' }}" data-href="{{ route('equipamentos.index') }}" role="link" tabindex="0">
                                 <i class="bi bi-tools"></i> Equipamentos
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('voluntarios.*') ? 'active' : '' }}" href="{{ route('voluntarios.index') }}">
+                            <a class="nav-link {{ request()->routeIs('voluntarios.*') ? 'active' : '' }}" data-href="{{ route('voluntarios.index') }}" role="link" tabindex="0">
                                 <i class="bi bi-person-heart"></i> Voluntários
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('equipes.*') ? 'active' : '' }}" href="{{ route('equipes.index') }}">
+                            <a class="nav-link {{ request()->routeIs('equipes.*') ? 'active' : '' }}" data-href="{{ route('equipes.index') }}" role="link" tabindex="0">
                                 <i class="bi bi-people"></i> Equipes
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('recursos.*') ? 'active' : '' }}" href="{{ route('recursos.index') }}">
+                            <a class="nav-link {{ request()->routeIs('recursos.*') ? 'active' : '' }}" data-href="{{ route('recursos.index') }}" role="link" tabindex="0">
                                 <i class="bi bi-search"></i> Consultar Recursos
                             </a>
                         </li>
                     @endhasanyrole
-                    
+
                 </ul>
             @endauth
             <div class="ms-auto">
@@ -131,9 +131,18 @@
             }, 4000);
         }
 
-        document.querySelectorAll('.stat-card-clickable').forEach((card) => {
-            card.addEventListener('click', () => {
-                window.location.href = card.dataset.href;
+        document.querySelectorAll('[data-href]').forEach((el) => {
+            el.addEventListener('click', () => {
+                window.location.href = el.dataset.href;
+            });
+        });
+
+        document.querySelectorAll('a[data-href][tabindex]').forEach((el) => {
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    window.location.href = el.dataset.href;
+                }
             });
         });
 

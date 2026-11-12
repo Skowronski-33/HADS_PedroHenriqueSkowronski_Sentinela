@@ -51,9 +51,9 @@
                     >
                         <x-slot:actions>
                             <li>
-                                <a class="dropdown-item" href="{{ route('voluntarios.edit', $voluntario) }}">
+                                <button type="button" class="dropdown-item" data-href="{{ route('voluntarios.edit', $voluntario) }}">
                                     <i class="bi bi-pencil me-2"></i> Editar
-                                </a>
+                                </button>
                             </li>
                             @if (!$voluntario->ativo)
                                 <li>

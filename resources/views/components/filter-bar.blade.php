@@ -27,12 +27,12 @@
     @endif
 
     <div class="filter-pill-group" role="group">
-        <a href="{{ route($routeName, [$searchName => $search]) }}"
-           class="btn btn-sm {{ ! $status ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</a>
-        <a href="{{ route($routeName, [$searchName => $search, $statusName => 'ativos']) }}"
-           class="btn btn-sm {{ $status === 'ativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Ativos</a>
-        <a href="{{ route($routeName, [$searchName => $search, $statusName => 'inativos']) }}"
-           class="btn btn-sm {{ $status === 'inativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Inativos</a>
+        <button type="button" data-href="{{ route($routeName, [$searchName => $search]) }}"
+           class="btn btn-sm {{ ! $status ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</button>
+        <button type="button" data-href="{{ route($routeName, [$searchName => $search, $statusName => 'ativos']) }}"
+           class="btn btn-sm {{ $status === 'ativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Ativos</button>
+        <button type="button" data-href="{{ route($routeName, [$searchName => $search, $statusName => 'inativos']) }}"
+           class="btn btn-sm {{ $status === 'inativos' ? 'btn-primary' : 'btn-outline-secondary' }}">Inativos</button>
     </div>
 
     <form method="GET" action="{{ route($routeName) }}" class="search-inline" style="width: 300px; max-width: 100%;">
@@ -40,7 +40,7 @@
         <input type="text" name="{{ $searchName }}" value="{{ $search }}" class="form-control" placeholder="{{ $searchPlaceholder }}">
         <input type="hidden" name="{{ $statusName }}" value="{{ $status }}">
         @if ($search)
-            <a href="{{ route($routeName, [$statusName => $status]) }}" class="small d-block mt-1 text-muted">Limpar busca</a>
+            <a data-href="{{ route($routeName, [$statusName => $status]) }}" class="small d-block mt-1 text-muted" role="link" tabindex="0">Limpar busca</a>
         @endif
     </form>
 </div>
