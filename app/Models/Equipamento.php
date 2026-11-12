@@ -54,4 +54,23 @@ class Equipamento extends Model
             default => 'bi-tools',
         };
     }
+
+    /**
+     * Cor do chip de categoria (tag-chip-* do sentinela.css) por palavra-chave do tipo,
+     * para diferenciar visualmente categorias de equipamento no card.
+     */
+    public function corCategoria(): string
+    {
+        $tipo = mb_strtolower($this->tipoEquipamento->nome ?? '');
+
+        return match (true) {
+            str_contains($tipo, 'socorro') || str_contains($tipo, 'médic') || str_contains($tipo, 'medic') => 'red',
+            str_contains($tipo, 'comunica') || str_contains($tipo, 'rádio') || str_contains($tipo, 'radio') => 'blue',
+            str_contains($tipo, 'resgate') => 'teal',
+            str_contains($tipo, 'drone') || str_contains($tipo, 'aére') || str_contains($tipo, 'aere') => 'purple',
+            str_contains($tipo, 'gerador') || str_contains($tipo, 'energia') || str_contains($tipo, 'ilumina') || str_contains($tipo, 'lanterna') => 'amber',
+            str_contains($tipo, 'embarca') || str_contains($tipo, 'barco') || str_contains($tipo, 'bote') => 'green',
+            default => 'slate',
+        };
+    }
 }

@@ -16,7 +16,7 @@ class EquipamentoController extends Controller
         $busca = $request->query('busca');
         $status = $request->query('status');
 
-        $equipamentos = Equipamento::with('tipoEquipamento')
+        $equipamentos = Equipamento::with(['tipoEquipamento' => fn ($q) => $q->withCount('equipamentos')])
             ->when($busca, fn ($q) => $q->where('nome', 'ilike', "%{$busca}%"))
             ->when($status === 'ativos', fn ($q) => $q->where('ativo', true)->where('status', '!=', 'Indisponível'))
             ->when($status === 'inativos', fn ($q) => $q->where(function ($q2) {

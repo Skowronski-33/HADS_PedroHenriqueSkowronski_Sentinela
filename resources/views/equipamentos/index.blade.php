@@ -52,14 +52,20 @@
                     <x-resource-card
                         :title="$equipamento->nome"
                         :subtitle="$equipamento->tipoEquipamento->nome"
-                        :icon="$equipamento->iconeTipo()"
+                        :subtitle-color="$equipamento->corCategoria()"
                         :border-color="!$equipamento->ativo ? 'indisponivel' : ($statusSlug[$equipamento->status] ?? 'indisponivel')"
                     >
+                        <x-slot:topBadge>
+                            <span class="equip-card-qty-badge" title="Total cadastrado deste tipo">
+                                <i class="bi bi-stack"></i> Qtd: {{ $equipamento->tipoEquipamento->equipamentos_count }} un
+                            </span>
+                        </x-slot:topBadge>
+
                         <x-slot:actions>
                             <li>
-                                <a class="dropdown-item" href="{{ route('equipamentos.edit', $equipamento) }}">
+                                <button type="button" class="dropdown-item" data-href="{{ route('equipamentos.edit', $equipamento) }}">
                                     <i class="bi bi-pencil me-2"></i> Editar
-                                </a>
+                                </button>
                             </li>
                             <li>
                                 <form method="POST" action="{{ route('equipamentos.toggle-ativo', $equipamento) }}"
@@ -95,7 +101,7 @@
                                     <span class="row-item"><i class="bi bi-upc-scan"></i> Patrimônio {{ $equipamento->patrimonio }}</span>
                                 @endif
                                 @if ($equipamento->localizacao)
-                                    <span class="row-item"><i class="bi bi-geo-alt"></i> {{ $equipamento->localizacao }}</span>
+                                    <span class="row-item row-item-strong"><i class="bi bi-geo-alt-fill"></i> {{ $equipamento->localizacao }}</span>
                                 @endif
                                 @if ($equipamento->data_ultima_manutencao)
                                     <span class="row-item"><i class="bi bi-wrench"></i> Manutenção em {{ $equipamento->data_ultima_manutencao->format('d/m/Y') }}</span>

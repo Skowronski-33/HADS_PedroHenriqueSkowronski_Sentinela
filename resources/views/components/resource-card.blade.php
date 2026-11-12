@@ -18,9 +18,17 @@
     Slots nomeados:
     - $slot (padrão)      conteúdo do meio do card (ex: .equip-card-meta com detalhes, contexto de atendimento)
     - $actions            itens <li> do menu "⋮" (dropdown). Se omitido, o menu não é renderizado.
+    - $headerBadge        badge extra no canto superior direito, à esquerda do $topBadge/menu "⋮"
+                           (ex: status "Ativo" do abrigo, quando o rodapé é usado para a ação primária)
+    - $topBadge           conteúdo extra no topo direito, à esquerda do menu "⋮" (ex: badge de quantidade)
     - $extraContent        conteúdo extra entre o meio e o rodapé (ex: barra de progresso de ocupação do abrigo)
     - $footer              substitui o badge padrão do rodapé por conteúdo customizado
-                           (ex: o <select> de status pill-select de Viaturas/Equipamentos)
+                           (ex: o <select> de status pill-select de Viaturas/Equipamentos, ou um botão
+                           de ação primária com .stretched-link — ver Abrigos)
+
+    Dica: para tornar o card inteiro clicável, dê a classe "stretched-link" a um link/botão dentro do
+    card (ex: no $footer). O componente já garante position:relative no card e eleva o z-index do menu
+    "⋮" para que ele continue clicável por cima do link esticado.
 --}}
 @props([
     'title',
@@ -53,16 +61,21 @@
             </div>
         </div>
 
-        @isset($actions)
-            <div class="dropdown">
-                <button type="button" class="equip-card-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Mais ações">
-                    <i class="bi bi-three-dots-vertical"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    {{ $actions }}
-                </ul>
-            </div>
-        @endisset
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            {{ $headerBadge ?? '' }}
+            {{ $topBadge ?? '' }}
+
+            @isset($actions)
+                <div class="dropdown">
+                    <button type="button" class="equip-card-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Mais ações">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        {{ $actions }}
+                    </ul>
+                </div>
+            @endisset
+        </div>
     </div>
 
     {{ $slot }}
