@@ -73,28 +73,44 @@ class PessoaAbrigadaController extends Controller
 
         $destino = Abrigo::findOrFail($data['abrigo_destino_id']);
 
-        DB::transaction(function () use ($pessoa, $abrigo, $destino, $data, $request) {
-            PessoaAbrigadaTransferencia::create([
-                'pessoa_abrigada_id' => $pessoa->id,
-                'abrigo_origem_id' => $abrigo->id,
-                'abrigo_destino_id' => $destino->id,
-                'user_id' => $request->user()->id,
-                'data_hora' => now(),
-                'observacoes' => $data['observacoes'] ?? null,
-            ]);
+        // A família é transferida inteira, sem perguntar: se a pessoa clicada for o
+        // responsável, os dependentes vão junto; se for dependente, o responsável e os
+        // demais dependentes também vão — ninguém fica separado da própria família.
+        $responsavel = $pessoa->responsavel_familiar_id ? $pessoa->responsavelFamiliar : $pessoa;
 
-            $pessoa->update([
-                'abrigo_id' => $destino->id,
-                'data_entrada' => now(),
-            ]);
+        $grupo = collect([$responsavel])
+            ->merge($responsavel->dependentes)
+            ->filter(fn ($membro) => $membro->abrigo_id === $abrigo->id && $membro->data_saida === null)
+            ->unique('id')
+            ->values();
+
+        DB::transaction(function () use ($grupo, $abrigo, $destino, $data, $request) {
+            foreach ($grupo as $membro) {
+                PessoaAbrigadaTransferencia::create([
+                    'pessoa_abrigada_id' => $membro->id,
+                    'abrigo_origem_id' => $abrigo->id,
+                    'abrigo_destino_id' => $destino->id,
+                    'user_id' => $request->user()->id,
+                    'data_hora' => now(),
+                    'observacoes' => $data['observacoes'] ?? null,
+                ]);
+
+                $membro->update([
+                    'abrigo_id' => $destino->id,
+                    'data_entrada' => now(),
+                ]);
+            }
         });
+
+        $mensagem = $grupo->count() > 1
+            ? "Família transferida para \"{$destino->nome}\" com sucesso ({$grupo->count()} pessoas, incluindo dependentes)."
+            : "Pessoa transferida para \"{$destino->nome}\" com sucesso.";
 
         if ($destino->ocupacaoAtual() >= $destino->capacidade) {
             return redirect()->route('abrigos.show', $abrigo)
-                ->with('error', "Pessoa transferida, mas o abrigo de destino \"{$destino->nome}\" atingiu ou ultrapassou a capacidade máxima ({$destino->ocupacaoAtual()}/{$destino->capacidade}).");
+                ->with('error', "{$mensagem} Atenção: o abrigo de destino atingiu ou ultrapassou a capacidade máxima ({$destino->ocupacaoAtual()}/{$destino->capacidade}).");
         }
 
-        return redirect()->route('abrigos.show', $abrigo)
-            ->with('success', "Pessoa transferida para \"{$destino->nome}\" com sucesso.");
+        return redirect()->route('abrigos.show', $abrigo)->with('success', $mensagem);
     }
 }

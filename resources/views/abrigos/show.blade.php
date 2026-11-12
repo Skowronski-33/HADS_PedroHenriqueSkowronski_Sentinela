@@ -67,7 +67,7 @@
                         <i class="bi bi-search"></i>
                     </button>
                     @if ($busca)
-                        <a href="{{ route('abrigos.show', $abrigo) }}" class="btn btn-sm btn-outline-secondary text-nowrap">Limpar</a>
+                        <button type="button" data-href="{{ route('abrigos.show', $abrigo) }}" class="btn btn-sm btn-outline-secondary text-nowrap">Limpar</button>
                     @endif
                 </form>
             </div>
@@ -110,6 +110,9 @@
                             <td class="text-end">
                                 <div class="d-flex gap-2 justify-content-end">
                                     @if ($outrosAbrigos->isNotEmpty())
+                                        @php
+                                            $temFamilia = $pessoa->responsavelFamiliar || $pessoa->dependentes->isNotEmpty();
+                                        @endphp
                                         <form method="POST" action="{{ route('abrigos.pessoas.transferir', [$abrigo, $pessoa]) }}" class="d-flex gap-1">
                                             @csrf
                                             @method('PATCH')
@@ -119,7 +122,8 @@
                                                     <option value="{{ $outro->id }}">{{ $outro->nome }}</option>
                                                 @endforeach
                                             </select>
-                                            <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap"
+                                                    title="{{ $temFamilia ? 'A família inteira (responsável + dependentes) é transferida junto automaticamente.' : 'Transferir' }}">
                                                 <i class="bi bi-arrow-left-right"></i>
                                             </button>
                                         </form>
