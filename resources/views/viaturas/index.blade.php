@@ -43,16 +43,17 @@
             @foreach ($viaturas as $viatura)
                 <div class="col-md-6 col-lg-4">
                     <x-resource-card
-                        title="{{ $viatura->identificacao }} — {{ $viatura->tipo }}"
-                        :subtitle="$viatura->placa"
-                        :icon="$viatura->iconeTipo()"
+                        class="viatura-card"
+                        :title="$viatura->identificacao"
+                        :subtitle="$viatura->tipo"
+                        :subtitle-color="$viatura->corTipo()"
                         :border-color="!$viatura->ativo ? 'indisponivel' : ($statusSlug[$viatura->status] ?? 'indisponivel')"
                     >
                         <x-slot:actions>
                             <li>
-                                <a class="dropdown-item" href="{{ route('viaturas.edit', $viatura) }}">
+                                <button type="button" class="dropdown-item" data-href="{{ route('viaturas.edit', $viatura) }}">
                                     <i class="bi bi-pencil me-2"></i> Editar
-                                </a>
+                                </button>
                             </li>
                             <li>
                                 <form method="POST" action="{{ route('viaturas.toggle-ativo', $viatura) }}"
@@ -72,11 +73,14 @@
                             </li>
                         </x-slot:actions>
 
-                        @if ($viatura->modelo)
-                            <div class="equip-card-meta">
-                                <span class="row-item row-item-strong"><i class="bi bi-car-front"></i> {{ $viatura->modelo }}</span>
+                        <div class="equip-card-meta">
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <span class="tag-chip-subtle">{{ $viatura->placa }}</span>
+                                @if ($viatura->modelo)
+                                    <span class="row-item"><i class="bi bi-truck"></i> {{ $viatura->modelo }}</span>
+                                @endif
                             </div>
-                        @endif
+                        </div>
 
                         @if ($viatura->ativo && $viatura->status === 'Em Atendimento' && $viatura->atendimentoAtual)
                             <div class="equip-card-context">

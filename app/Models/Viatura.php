@@ -39,4 +39,21 @@ class Viatura extends Model
             default => 'bi-truck',
         };
     }
+
+    /**
+     * Cor do badge de tipo (tag-chip-* do sentinela.css), para diferenciar
+     * rapidamente o tipo de viatura no card sem poluir o layout.
+     */
+    public function corTipo(): string
+    {
+        return match ($this->tipo) {
+            'Comando' => 'blue',
+            'Resgate' => 'teal',
+            'Ambulância' => 'red',
+            'Caminhão-Pipa' => 'green',
+            'Apoio 4x4' => 'amber',
+            'Transporte' => 'purple',
+            default => 'slate',
+        };
+    }
 }
