@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:Gerenciador de Abrigo|Admin')->group(function () {
         Route::resource('abrigos', AbrigoController::class)
             ->except(['destroy']);
+        Route::patch('abrigos/{abrigo}/toggle-ativo', [AbrigoController::class, 'toggleAtivo'])
+            ->name('abrigos.toggle-ativo');
 
         Route::get('abrigos/{abrigo}/donativos', [DonativoController::class, 'index'])
             ->name('abrigos.donativos.index');

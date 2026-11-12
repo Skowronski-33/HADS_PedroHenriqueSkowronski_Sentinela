@@ -28,19 +28,32 @@
                         :title="$abrigo->nome"
                         icon="bi-house-door-fill"
                         :border-color="$borderColor"
-                        :status-text="$statusText"
-                        :status-color="$statusColor"
                     >
+                        <x-slot:headerBadge>
+                            <x-status-badge :text="$statusText" :color="$statusColor" />
+                        </x-slot:headerBadge>
+
                         <x-slot:actions>
                             <li>
-                                <a class="dropdown-item" href="{{ route('abrigos.show', $abrigo) }}">
-                                    <i class="bi bi-eye me-2"></i> Gerenciar
-                                </a>
+                                <button type="button" class="dropdown-item" data-href="{{ route('abrigos.edit', $abrigo) }}">
+                                    <i class="bi bi-pencil me-2"></i> Editar Informações
+                                </button>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{{ route('abrigos.edit', $abrigo) }}">
-                                    <i class="bi bi-pencil me-2"></i> Editar
-                                </a>
+                                <form method="POST" action="{{ route('abrigos.toggle-ativo', $abrigo) }}"
+                                      @if ($abrigo->ativo) data-confirm="Inativar o abrigo '{{ $abrigo->nome }}'?" @endif>
+                                    @csrf
+                                    @method('PATCH')
+                                    @if ($abrigo->ativo)
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-slash-circle me-2"></i> Inativar Abrigo
+                                        </button>
+                                    @else
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-check-circle me-2"></i> Reativar Abrigo
+                                        </button>
+                                    @endif
+                                </form>
                             </li>
                         </x-slot:actions>
 
@@ -60,6 +73,12 @@
                                 </div>
                             </div>
                         </x-slot:extraContent>
+
+                        <x-slot:footer>
+                            <a data-href="{{ route('abrigos.show', $abrigo) }}" class="btn btn-primary w-100 stretched-link" role="link" tabindex="0">
+                                <i class="bi bi-gear-fill"></i> Gerenciar Abrigo
+                            </a>
+                        </x-slot:footer>
                     </x-resource-card>
                 </div>
             @endforeach

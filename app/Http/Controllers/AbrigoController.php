@@ -99,29 +99,52 @@ class AbrigoController extends Controller
 
         $estaSendoInativado = $abrigo->status !== 'Inativo' && $data['status'] === 'Inativo';
 
-        if ($estaSendoInativado) {
-            $pessoasAtivas = $abrigo->ocupacaoAtual();
-            $donativosComEstoque = $abrigo->donativos()->where('estoque_atual', '>', 0)->count();
-
-            if ($pessoasAtivas > 0 || $donativosComEstoque > 0) {
-                $pendencias = [];
-
-                if ($pessoasAtivas > 0) {
-                    $pendencias[] = "{$pessoasAtivas} pessoa(s) ainda abrigada(s)";
-                }
-
-                if ($donativosComEstoque > 0) {
-                    $pendencias[] = "{$donativosComEstoque} item(ns) de donativo com estoque";
-                }
-
-                return redirect()->route('abrigos.edit', $abrigo)
-                    ->with('error', 'Não é possível inativar o abrigo: ainda há '.implode(' e ', $pendencias).
-                        '. Registre a saída ou transfira para outro abrigo antes de inativar.');
-            }
+        if ($estaSendoInativado && ($erro = $this->pendenciasParaInativar($abrigo))) {
+            return redirect()->route('abrigos.edit', $abrigo)->with('error', $erro);
         }
 
         $abrigo->update($data);
 
         return redirect()->route('abrigos.index')->with('success', 'Abrigo atualizado com sucesso.');
+    }
+
+    public function toggleAtivo(Abrigo $abrigo)
+    {
+        if ($abrigo->status === 'Inativo') {
+            $abrigo->update(['status' => 'Ativo', 'ativo' => true]);
+
+            return back()->with('success', "Abrigo \"{$abrigo->nome}\" reativado.");
+        }
+
+        if ($erro = $this->pendenciasParaInativar($abrigo)) {
+            return back()->with('error', $erro);
+        }
+
+        $abrigo->update(['status' => 'Inativo', 'ativo' => false]);
+
+        return back()->with('success', "Abrigo \"{$abrigo->nome}\" inativado.");
+    }
+
+    private function pendenciasParaInativar(Abrigo $abrigo): ?string
+    {
+        $pessoasAtivas = $abrigo->ocupacaoAtual();
+        $donativosComEstoque = $abrigo->donativos()->where('estoque_atual', '>', 0)->count();
+
+        if ($pessoasAtivas === 0 && $donativosComEstoque === 0) {
+            return null;
+        }
+
+        $pendencias = [];
+
+        if ($pessoasAtivas > 0) {
+            $pendencias[] = "{$pessoasAtivas} pessoa(s) ainda abrigada(s)";
+        }
+
+        if ($donativosComEstoque > 0) {
+            $pendencias[] = "{$donativosComEstoque} item(ns) de donativo com estoque";
+        }
+
+        return 'Não é possível inativar o abrigo: ainda há '.implode(' e ', $pendencias).
+            '. Registre a saída ou transfira para outro abrigo antes de inativar.';
     }
 }
