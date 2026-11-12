@@ -32,32 +32,58 @@
 
     <div class="card">
         <div class="card-body border-bottom">
-            <form method="GET" action="{{ route('ocorrencias.index') }}" class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                <p class="mb-0 text-muted text-nowrap">
-                    Mostrando {{ $ocorrencias->count() }} de {{ $ocorrencias->total() }} ocorrências
-                </p>
-                <div class="d-flex flex-wrap gap-2">
-                    <select name="status" class="form-select form-select-sm" style="width: 170px;" onchange="this.form.submit()">
-                        <option value="">Todos os status</option>
-                        @foreach ($statusOpcoes as $opcao)
-                            <option value="{{ $opcao }}" {{ $status === $opcao ? 'selected' : '' }}>{{ $opcao }}</option>
-                        @endforeach
-                    </select>
-                    <select name="prioridade_id" class="form-select form-select-sm" style="width: 160px;" onchange="this.form.submit()">
-                        <option value="">Todas as prioridades</option>
-                        @foreach ($prioridades as $prioridade)
-                            <option value="{{ $prioridade->id }}" {{ (int) $prioridadeId === $prioridade->id ? 'selected' : '' }}>{{ $prioridade->nome }}</option>
-                        @endforeach
-                    </select>
-                    <input type="date" name="data_inicio" value="{{ $dataInicio }}" class="form-control form-control-sm" style="width: 150px;" title="Data inicial">
-                    <input type="date" name="data_fim" value="{{ $dataFim }}" class="form-control form-control-sm" style="width: 150px;" title="Data final">
-                    <input type="text" name="busca" value="{{ $busca }}" class="form-control form-control-sm" placeholder="Buscar por endereço ou bairro...">
-                    <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap"><i class="bi bi-search"></i></button>
-                    @if ($busca || $status || $prioridadeId || $dataInicio || $dataFim)
-                        <a href="{{ route('ocorrencias.index') }}" class="btn btn-sm btn-outline-secondary text-nowrap">Limpar</a>
-                    @endif
+            <form method="GET" action="{{ route('ocorrencias.index') }}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted mb-1">Buscar</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="busca" value="{{ $busca }}" class="form-control"
+                                   placeholder="Buscar por endereço ou bairro...">
+                            <button type="submit" class="btn btn-outline-secondary" title="Buscar">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small text-muted mb-1">Status</label>
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todos os status</option>
+                            @foreach ($statusOpcoes as $opcao)
+                                <option value="{{ $opcao }}" {{ $status === $opcao ? 'selected' : '' }}>{{ $opcao }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small text-muted mb-1">Prioridade</label>
+                        <select name="prioridade_id" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todas as prioridades</option>
+                            @foreach ($prioridades as $prioridade)
+                                <option value="{{ $prioridade->id }}" {{ (int) $prioridadeId === $prioridade->id ? 'selected' : '' }}>{{ $prioridade->nome }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted mb-1">Período</label>
+                        <div class="input-group">
+                            <input type="date" name="data_inicio" value="{{ $dataInicio }}" class="form-control" title="Data inicial">
+                            <span class="input-group-text">até</span>
+                            <input type="date" name="data_fim" value="{{ $dataFim }}" class="form-control" title="Data final">
+                        </div>
+                    </div>
                 </div>
+
+                @if ($busca || $status || $prioridadeId || $dataInicio || $dataFim)
+                    <a data-href="{{ route('ocorrencias.index') }}" class="small d-inline-block mt-2 text-muted" role="link" tabindex="0">
+                        <i class="bi bi-x-circle"></i> Limpar filtros
+                    </a>
+                @endif
             </form>
+        </div>
+        <div class="card-body border-bottom py-2">
+            <p class="mb-0 text-muted small">
+                Mostrando {{ $ocorrencias->count() }} de {{ $ocorrencias->total() }} ocorrências
+            </p>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -86,9 +112,9 @@
                             <td>{{ $ocorrencia->data_hora->format('d/m/Y H:i') }}</td>
                             <td><x-status-badge :text="$ocorrencia->status" :color="$corStatus[$ocorrencia->status] ?? 'bg-secondary'" /></td>
                             <td class="text-end">
-                                <a href="{{ route('ocorrencias.show', $ocorrencia) }}" class="btn btn-sm btn-outline-secondary">
+                                <button type="button" data-href="{{ route('ocorrencias.show', $ocorrencia) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="bi bi-eye"></i> Ver
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     @empty
