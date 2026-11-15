@@ -12,6 +12,7 @@ class Donativo extends Model
         'descricao',
         'unidade_medida',
         'estoque_atual',
+        'estoque_minimo',
         'ativo',
     ];
 

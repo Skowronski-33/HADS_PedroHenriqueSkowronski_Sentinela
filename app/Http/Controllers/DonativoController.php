@@ -44,7 +44,10 @@ class DonativoController extends Controller
             'tipo' => ['required', 'string', 'max:100'],
             'descricao' => ['nullable', 'string', 'max:200'],
             'unidade_medida' => ['required', Rule::in(self::UNIDADE_OPCOES)],
+            'estoque_minimo' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        $data['estoque_minimo'] = $data['estoque_minimo'] ?? 10;
 
         $abrigo->donativos()->create($data + ['estoque_atual' => 0, 'ativo' => true]);
 
@@ -59,7 +62,10 @@ class DonativoController extends Controller
             'tipo' => ['required', 'string', 'max:100'],
             'descricao' => ['nullable', 'string', 'max:200'],
             'unidade_medida' => ['required', Rule::in(self::UNIDADE_OPCOES)],
+            'estoque_minimo' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        $data['estoque_minimo'] = $data['estoque_minimo'] ?? 10;
 
         $donativo->update($data);
 

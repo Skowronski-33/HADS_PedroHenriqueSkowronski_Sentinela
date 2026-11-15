@@ -34,7 +34,7 @@
         <div class="card-body border-bottom">
             <form method="GET" action="{{ route('ocorrencias.index') }}">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label small text-muted mb-1">Buscar</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
@@ -49,6 +49,9 @@
                         <label class="form-label small text-muted mb-1">Status</label>
                         <select name="status" class="form-select" onchange="this.form.submit()">
                             <option value="">Todos os status</option>
+                            <option value="exceto_descartadas" {{ $status === 'exceto_descartadas' ? 'selected' : '' }}>
+                                Todas, exceto Descartadas
+                            </option>
                             @foreach ($statusOpcoes as $opcao)
                                 <option value="{{ $opcao }}" {{ $status === $opcao ? 'selected' : '' }}>{{ $opcao }}</option>
                             @endforeach
@@ -63,7 +66,16 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small text-muted mb-1">Tipo</label>
+                        <select name="tipo_ocorrencia_id" class="form-select" onchange="this.form.submit()">
+                            <option value="">Todos os tipos</option>
+                            @foreach ($tipos as $tipo)
+                                <option value="{{ $tipo->id }}" {{ (int) $tipoOcorrenciaId === $tipo->id ? 'selected' : '' }}>{{ $tipo->nome }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label small text-muted mb-1">Período</label>
                         <div class="input-group">
                             <input type="date" name="data_inicio" value="{{ $dataInicio }}" class="form-control" title="Data inicial">
@@ -73,7 +85,7 @@
                     </div>
                 </div>
 
-                @if ($busca || $status || $prioridadeId || $dataInicio || $dataFim)
+                @if ($busca || $status || $prioridadeId || $tipoOcorrenciaId || $dataInicio || $dataFim)
                     <a data-href="{{ route('ocorrencias.index') }}" class="small d-inline-block mt-2 text-muted" role="link" tabindex="0">
                         <i class="bi bi-x-circle"></i> Limpar filtros
                     </a>
@@ -120,7 +132,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="text-center text-muted py-4">
-                                @if ($busca || $status || $prioridadeId || $dataInicio || $dataFim)
+                                @if ($busca || $status || $prioridadeId || $tipoOcorrenciaId || $dataInicio || $dataFim)
                                     Nenhuma ocorrência encontrada para os filtros aplicados.
                                 @else
                                     Nenhuma ocorrência registrada ainda.

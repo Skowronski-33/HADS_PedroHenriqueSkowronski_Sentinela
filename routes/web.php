@@ -66,6 +66,8 @@ Route::middleware('auth')->group(function () {
 
         Route::post('abrigos/{abrigo}/pessoas', [PessoaAbrigadaController::class, 'store'])
             ->name('abrigos.pessoas.store');
+        Route::patch('abrigos/{abrigo}/pessoas/{pessoa}', [PessoaAbrigadaController::class, 'update'])
+            ->name('abrigos.pessoas.update');
         Route::patch('abrigos/{abrigo}/pessoas/{pessoa}/saida', [PessoaAbrigadaController::class, 'saida'])
             ->name('abrigos.pessoas.saida');
         Route::patch('abrigos/{abrigo}/pessoas/{pessoa}/transferir', [PessoaAbrigadaController::class, 'transferir'])

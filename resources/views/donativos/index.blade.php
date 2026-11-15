@@ -53,7 +53,7 @@
                         @php
                             $corEstoque = match (true) {
                                 $donativo->estoque_atual <= 0 => 'bg-danger',
-                                $donativo->estoque_atual <= 10 => 'bg-warning text-dark',
+                                $donativo->estoque_atual <= $donativo->estoque_minimo => 'bg-warning text-dark',
                                 default => 'bg-info',
                             };
                         @endphp
@@ -66,17 +66,17 @@
                             </td>
                             <td>{{ $donativo->unidade_medida }}</td>
                             <td>
-                                <span class="badge {{ $corEstoque }}">{{ $donativo->estoque_atual }}</span>
+                                <span class="badge {{ $corEstoque }}" title="Estoque mínimo: {{ $donativo->estoque_minimo }}">{{ $donativo->estoque_atual }}</span>
                                 @if ($donativo->estoque_atual <= 0)
                                     <br><small class="text-danger">Esgotado</small>
-                                @elseif ($donativo->estoque_atual <= 10)
+                                @elseif ($donativo->estoque_atual <= $donativo->estoque_minimo)
                                     <br><small class="text-warning">Estoque baixo</small>
                                 @endif
                             </td>
                             <td class="text-end">
                                 <div class="d-flex gap-1 justify-content-end flex-wrap">
                                     <button type="button" class="btn btn-sm btn-outline-secondary" title="Editar item"
-                                            onclick="abrirModalEditarDonativo({{ $donativo->id }}, {{ json_encode($donativo->tipo) }}, {{ json_encode($donativo->descricao) }}, {{ json_encode($donativo->unidade_medida) }})">
+                                            onclick="abrirModalEditarDonativo({{ $donativo->id }}, {{ json_encode($donativo->tipo) }}, {{ json_encode($donativo->descricao) }}, {{ json_encode($donativo->unidade_medida) }}, {{ $donativo->estoque_minimo }})">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-success text-nowrap" title="Registrar entrada (recebimento)"
@@ -143,7 +143,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="mb-0">
+                        <div class="mb-3">
                             <label class="form-label">Unidade</label>
                             <select name="unidade_medida" class="form-select @error('unidade_medida', 'donativo') is-invalid @enderror" required>
                                 @foreach ($unidadeOpcoes as $opcao)
@@ -151,6 +151,15 @@
                                 @endforeach
                             </select>
                             @error('unidade_medida', 'donativo')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Estoque mínimo <span class="text-muted">(Opcional)</span></label>
+                            <input type="number" name="estoque_minimo" value="{{ old('estoque_minimo', 10) }}" min="0"
+                                   class="form-control @error('estoque_minimo', 'donativo') is-invalid @enderror">
+                            <div class="form-text">Abaixo disso, o badge de estoque fica amarelo ("Estoque baixo").</div>
+                            @error('estoque_minimo', 'donativo')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -192,7 +201,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="mb-0">
+                        <div class="mb-3">
                             <label class="form-label">Unidade</label>
                             <select name="unidade_medida" id="editarDonativoUnidade" class="form-select @error('unidade_medida', 'donativo_edit') is-invalid @enderror" required>
                                 @foreach ($unidadeOpcoes as $opcao)
@@ -200,6 +209,15 @@
                                 @endforeach
                             </select>
                             @error('unidade_medida', 'donativo_edit')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label">Estoque mínimo <span class="text-muted">(Opcional)</span></label>
+                            <input type="number" name="estoque_minimo" id="editarDonativoEstoqueMinimo" min="0"
+                                   class="form-control @error('estoque_minimo', 'donativo_edit') is-invalid @enderror">
+                            <div class="form-text">Abaixo disso, o badge de estoque fica amarelo ("Estoque baixo").</div>
+                            @error('estoque_minimo', 'donativo_edit')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -379,12 +397,13 @@
         const donativoSaidaUrlTemplate = @json(route('abrigos.donativos.saida', [$abrigo, '__ID__']));
         const donativoTransferirUrlTemplate = @json(route('abrigos.donativos.transferir', [$abrigo, '__ID__']));
 
-        function abrirModalEditarDonativo(id, tipo, descricao, unidade) {
+        function abrirModalEditarDonativo(id, tipo, descricao, unidade, estoqueMinimo) {
             document.getElementById('formEditarDonativo').action = donativoUpdateUrlTemplate.replace('__ID__', id);
             document.getElementById('editarDonativoId').value = id;
             document.getElementById('editarDonativoTipo').value = tipo;
             document.getElementById('editarDonativoDescricao').value = descricao || '';
             document.getElementById('editarDonativoUnidade').value = unidade;
+            document.getElementById('editarDonativoEstoqueMinimo').value = estoqueMinimo ?? 10;
             new bootstrap.Modal(document.getElementById('modalEditarDonativo')).show();
         }
 
@@ -433,7 +452,8 @@
                 {{ old('_donativo_id', 0) }},
                 {{ json_encode(old('tipo')) }},
                 {{ json_encode(old('descricao')) }},
-                {{ json_encode(old('unidade_medida')) }}
+                {{ json_encode(old('unidade_medida')) }},
+                {{ old('estoque_minimo', 10) }}
             );
         </script>
     @endif

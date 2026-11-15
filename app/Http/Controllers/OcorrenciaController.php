@@ -20,6 +20,7 @@ class OcorrenciaController extends Controller
         $busca = $request->query('busca');
         $status = $request->query('status');
         $prioridadeId = $request->query('prioridade_id');
+        $tipoOcorrenciaId = $request->query('tipo_ocorrencia_id');
         $dataInicio = $request->query('data_inicio');
         $dataFim = $request->query('data_fim');
 
@@ -28,24 +29,31 @@ class OcorrenciaController extends Controller
                 $q2->where('endereco', 'ilike', "%{$busca}%")
                     ->orWhere('bairro', 'ilike', "%{$busca}%");
             }))
-            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($status, fn ($q) => $status === 'exceto_descartadas'
+                ? $q->where('status', '!=', 'Descartada')
+                : $q->where('status', $status))
             ->when($prioridadeId, fn ($q) => $q->where('prioridade_id', $prioridadeId))
+            ->when($tipoOcorrenciaId, fn ($q) => $q->where('tipo_ocorrencia_id', $tipoOcorrenciaId))
             ->when($dataInicio, fn ($q) => $q->whereDate('data_hora', '>=', $dataInicio))
             ->when($dataFim, fn ($q) => $q->whereDate('data_hora', '<=', $dataFim))
             ->orderByDesc('data_hora')
             ->paginate(15)
             ->withQueryString();
 
+        $tiposComContagem = TipoOcorrencia::where('ativo', true)->withCount('ocorrencias')->orderBy('nome')->get();
+
         return view('ocorrencias.index', [
             'ocorrencias' => $ocorrencias,
             'busca' => $busca,
             'status' => $status,
             'prioridadeId' => $prioridadeId,
+            'tipoOcorrenciaId' => $tipoOcorrenciaId,
             'dataInicio' => $dataInicio,
             'dataFim' => $dataFim,
             'statusOpcoes' => self::STATUS_OPCOES,
             'prioridades' => Prioridade::where('ativo', true)->orderBy('id')->get(),
-            'tiposComContagem' => TipoOcorrencia::where('ativo', true)->withCount('ocorrencias')->orderBy('nome')->get(),
+            'tipos' => $tiposComContagem,
+            'tiposComContagem' => $tiposComContagem,
             'prioridadesComContagem' => Prioridade::where('ativo', true)->withCount('ocorrencias')->orderBy('id')->get(),
         ]);
     }
@@ -139,7 +147,7 @@ class OcorrenciaController extends Controller
         DB::transaction(function () use ($ocorrencia) {
             $atendimentosAbertos = $ocorrencia->atendimentos()
                 ->whereIn('status', ['Em Deslocamento', 'No Local'])
-                ->with(['equipe', 'viatura'])
+                ->with(['equipe', 'viatura', 'equipamentos'])
                 ->get();
 
             foreach ($atendimentosAbertos as $atendimento) {
@@ -151,6 +159,12 @@ class OcorrenciaController extends Controller
 
                 if ($atendimento->viatura && $atendimento->viatura->ativo) {
                     $atendimento->viatura->update(['status' => 'Disponível']);
+                }
+
+                foreach ($atendimento->equipamentos as $equipamento) {
+                    if ($equipamento->ativo) {
+                        $equipamento->update(['status' => 'Disponível']);
+                    }
                 }
             }
 

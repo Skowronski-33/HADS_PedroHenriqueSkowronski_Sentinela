@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Atendimento;
+use App\Models\Equipamento;
 use App\Models\Equipe;
 use App\Models\Ocorrencia;
 use App\Models\Viatura;
@@ -57,6 +58,8 @@ class AtendimentoController extends Controller
                         $id => ['quantidade_utilizada' => $quantidades[$id] ?? 1],
                     ])
                 );
+
+                Equipamento::whereIn('id', $data['equipamentos'])->update(['status' => 'Em Uso']);
             }
 
             if ($ocorrencia->status === 'Triada') {
@@ -101,6 +104,12 @@ class AtendimentoController extends Controller
 
                 if ($atendimento->viatura && $atendimento->viatura->ativo) {
                     $atendimento->viatura->update(['status' => 'Disponível']);
+                }
+
+                foreach ($atendimento->equipamentos as $equipamento) {
+                    if ($equipamento->ativo) {
+                        $equipamento->update(['status' => 'Disponível']);
+                    }
                 }
             }
         });

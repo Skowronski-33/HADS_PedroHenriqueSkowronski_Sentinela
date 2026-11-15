@@ -46,14 +46,69 @@ class PessoaAbrigadaController extends Controller
             ->with('success', 'Pessoa cadastrada com sucesso, entrada registrada em '.now()->format('d/m/Y H:i').'.');
     }
 
+    public function update(Request $request, Abrigo $abrigo, PessoaAbrigada $pessoa)
+    {
+        abort_unless($pessoa->abrigo_id === $abrigo->id, 404);
+
+        $data = $request->validateWithBag('pessoa_edit', [
+            'nome' => ['required', 'string', 'max:150'],
+            'idade' => ['nullable', 'integer', 'min:0', 'max:120'],
+            'contato' => ['nullable', 'string', 'max:20'],
+            'necessita_prioridade' => ['nullable', 'boolean'],
+            'responsavel_familiar_id' => [
+                'nullable',
+                Rule::exists('pessoas_abrigadas', 'id')
+                    ->where('abrigo_id', $abrigo->id)
+                    ->whereNull('data_saida')
+                    ->whereNull('responsavel_familiar_id')
+                    ->where('id', '!=', $pessoa->id),
+            ],
+            'observacoes' => ['nullable', 'string'],
+        ], [], [
+            'responsavel_familiar_id' => 'responsável pela família',
+        ]);
+
+        $data['necessita_prioridade'] = $request->boolean('necessita_prioridade');
+
+        // Evita um ciclo familiar: não dá pra virar dependente de quem já é seu dependente.
+        if (! empty($data['responsavel_familiar_id']) && $pessoa->dependentes()->where('id', $data['responsavel_familiar_id'])->exists()) {
+            return back()->withErrors([
+                'responsavel_familiar_id' => 'Essa pessoa já é dependente de quem está editando — não é possível criar um ciclo familiar.',
+            ], 'pessoa_edit');
+        }
+
+        $pessoa->update($data);
+
+        return redirect()->route('abrigos.show', $abrigo)->with('success', 'Dados atualizados com sucesso.');
+    }
+
     public function saida(Request $request, Abrigo $abrigo, PessoaAbrigada $pessoa)
     {
         abort_unless($pessoa->abrigo_id === $abrigo->id, 404);
         abort_if($pessoa->data_saida !== null, 422, 'Esta pessoa já teve saída registrada.');
 
-        $pessoa->update(['data_saida' => now()]);
+        // Mesma regra da transferência: a família sai junto, sem perguntar.
+        $responsavel = $pessoa->responsavel_familiar_id ? $pessoa->responsavelFamiliar : $pessoa;
 
-        return redirect()->route('abrigos.show', $abrigo)->with('success', 'Saída registrada com sucesso.');
+        $grupo = collect([$responsavel])
+            ->merge($responsavel->dependentes)
+            ->filter(fn ($membro) => $membro->abrigo_id === $abrigo->id && $membro->data_saida === null)
+            ->unique('id')
+            ->values();
+
+        $agora = now();
+
+        DB::transaction(function () use ($grupo, $agora) {
+            foreach ($grupo as $membro) {
+                $membro->update(['data_saida' => $agora]);
+            }
+        });
+
+        $mensagem = $grupo->count() > 1
+            ? "Saída registrada com sucesso para a família ({$grupo->count()} pessoas, incluindo dependentes)."
+            : 'Saída registrada com sucesso.';
+
+        return redirect()->route('abrigos.show', $abrigo)->with('success', $mensagem);
     }
 
     public function transferir(Request $request, Abrigo $abrigo, PessoaAbrigada $pessoa)

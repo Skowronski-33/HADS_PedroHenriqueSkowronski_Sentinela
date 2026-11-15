@@ -108,11 +108,15 @@
                             </td>
                             <td>{{ $pessoa->data_entrada->format('d/m/Y H:i') }}</td>
                             <td class="text-end">
+                                @php
+                                    $temFamilia = $pessoa->responsavelFamiliar || $pessoa->dependentes->isNotEmpty();
+                                @endphp
                                 <div class="d-flex gap-2 justify-content-end">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Editar dados"
+                                            onclick="abrirModalEditarPessoa({{ $pessoa->id }}, {{ json_encode($pessoa->nome) }}, {{ $pessoa->idade ?? 'null' }}, {{ json_encode($pessoa->contato) }}, {{ $pessoa->necessita_prioridade ? 'true' : 'false' }}, {{ $pessoa->responsavel_familiar_id ?? 'null' }}, {{ json_encode($pessoa->observacoes) }})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
                                     @if ($outrosAbrigos->isNotEmpty())
-                                        @php
-                                            $temFamilia = $pessoa->responsavelFamiliar || $pessoa->dependentes->isNotEmpty();
-                                        @endphp
                                         <form method="POST" action="{{ route('abrigos.pessoas.transferir', [$abrigo, $pessoa]) }}" class="d-flex gap-1">
                                             @csrf
                                             @method('PATCH')
@@ -129,10 +133,11 @@
                                         </form>
                                     @endif
                                     <form method="POST" action="{{ route('abrigos.pessoas.saida', [$abrigo, $pessoa]) }}"
-                                          data-confirm="Registrar saída definitiva de {{ $pessoa->nome }} deste abrigo?">
+                                          data-confirm="{{ $temFamilia ? "Registrar saída definitiva de {$pessoa->nome} e de toda a família (responsável + dependentes) deste abrigo?" : "Registrar saída definitiva de {$pessoa->nome} deste abrigo?" }}">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap"
+                                                title="{{ $temFamilia ? 'A família inteira (responsável + dependentes) sai junto automaticamente.' : 'Saída' }}">
                                             <i class="bi bi-box-arrow-right"></i> Saída
                                         </button>
                                     </form>
@@ -245,6 +250,121 @@
     @if ($errors->pessoa->any())
         <script>
             new bootstrap.Modal(document.getElementById('modalCadastrarPessoa')).show();
+        </script>
+    @endif
+
+    <div class="modal fade" id="modalEditarPessoa" tabindex="-1" aria-labelledby="modalEditarPessoaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form method="POST" id="formEditarPessoa" action="">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="_pessoa_id" id="editarPessoaId" value="{{ old('_pessoa_id') }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalEditarPessoaLabel">Editar Pessoa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nome</label>
+                                <input type="text" name="nome" id="editarPessoaNome"
+                                       class="form-control @error('nome', 'pessoa_edit') is-invalid @enderror" required>
+                                @error('nome', 'pessoa_edit')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Idade</label>
+                                <input type="number" name="idade" id="editarPessoaIdade" min="0" max="120"
+                                       class="form-control @error('idade', 'pessoa_edit') is-invalid @enderror">
+                                @error('idade', 'pessoa_edit')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Contato <span class="text-muted">(Opcional)</span></label>
+                                <input type="text" name="contato" id="editarPessoaContato" placeholder="(XX) XXXXX-XXXX"
+                                       class="form-control mask-telefone @error('contato', 'pessoa_edit') is-invalid @enderror">
+                                @error('contato', 'pessoa_edit')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Faz parte do grupo familiar de <span class="text-muted">(Opcional)</span></label>
+                            <select name="responsavel_familiar_id" id="editarPessoaResponsavel" class="form-select @error('responsavel_familiar_id', 'pessoa_edit') is-invalid @enderror">
+                                <option value="">Nenhum (é o responsável pela própria família, ou veio sozinho)</option>
+                                @foreach ($responsaveisDisponiveis as $responsavel)
+                                    <option value="{{ $responsavel->id }}" data-pessoa-id="{{ $responsavel->id }}">{{ $responsavel->nome }}</option>
+                                @endforeach
+                            </select>
+                            @error('responsavel_familiar_id', 'pessoa_edit')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" name="necessita_prioridade" value="1" id="editarPessoaPrioridade" class="form-check-input">
+                            <label for="editarPessoaPrioridade" class="form-check-label">
+                                Necessita de acessibilidade ou prioridade especial (idoso, gestante, PCD, criança desacompanhada etc.)
+                            </label>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label">Observações</label>
+                            <textarea name="observacoes" id="editarPessoaObservacoes" rows="2"
+                                      class="form-control auto-resize @error('observacoes', 'pessoa_edit') is-invalid @enderror"
+                                      style="resize: none; overflow: hidden;"></textarea>
+                            @error('observacoes', 'pessoa_edit')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pessoaUpdateUrlTemplate = @json(route('abrigos.pessoas.update', [$abrigo, '__ID__']));
+
+        function abrirModalEditarPessoa(id, nome, idade, contato, necessitaPrioridade, responsavelId, observacoes) {
+            document.getElementById('formEditarPessoa').action = pessoaUpdateUrlTemplate.replace('__ID__', id);
+            document.getElementById('editarPessoaId').value = id;
+            document.getElementById('editarPessoaNome').value = nome;
+            document.getElementById('editarPessoaIdade').value = idade ?? '';
+            document.getElementById('editarPessoaContato').value = contato || '';
+            document.getElementById('editarPessoaPrioridade').checked = !!necessitaPrioridade;
+            document.getElementById('editarPessoaObservacoes').value = observacoes || '';
+
+            const select = document.getElementById('editarPessoaResponsavel');
+            Array.from(select.options).forEach((opt) => {
+                // Ninguém pode ser responsável de si mesmo.
+                opt.hidden = opt.dataset.pessoaId && Number(opt.dataset.pessoaId) === Number(id);
+            });
+            select.value = responsavelId ?? '';
+
+            new bootstrap.Modal(document.getElementById('modalEditarPessoa')).show();
+        }
+    </script>
+
+    @if ($errors->pessoa_edit->any())
+        <script>
+            abrirModalEditarPessoa(
+                {{ old('_pessoa_id', 0) }},
+                {{ json_encode(old('nome')) }},
+                {{ old('idade', 'null') }},
+                {{ json_encode(old('contato')) }},
+                {{ old('necessita_prioridade') ? 'true' : 'false' }},
+                {{ old('responsavel_familiar_id', 'null') }},
+                {{ json_encode(old('observacoes')) }}
+            );
         </script>
     @endif
 
