@@ -116,8 +116,9 @@ class PessoaAbrigadaController extends Controller
         abort_unless($pessoa->abrigo_id === $abrigo->id, 404);
         abort_if($pessoa->data_saida !== null, 422, 'Esta pessoa já teve saída registrada.');
 
-        $data = $request->validate([
+        $data = $request->validateWithBag('pessoa_transferir', [
             'abrigo_destino_id' => ['required', 'integer', 'exists:abrigos,id'],
+            'incluir_familia' => ['nullable', 'boolean'],
             'observacoes' => ['nullable', 'string'],
         ], [], ['abrigo_destino_id' => 'abrigo de destino']);
 
@@ -128,18 +129,22 @@ class PessoaAbrigadaController extends Controller
 
         $destino = Abrigo::findOrFail($data['abrigo_destino_id']);
 
-        // A família é transferida inteira, sem perguntar: se a pessoa clicada for o
+        // Por padrão a família inteira é transferida junto (se a pessoa clicada for o
         // responsável, os dependentes vão junto; se for dependente, o responsável e os
-        // demais dependentes também vão — ninguém fica separado da própria família.
+        // demais dependentes também vão) — mas quem está transferindo pode optar por
+        // levar só a pessoa selecionada, deixando o restante da família no abrigo atual.
+        $incluirFamilia = $request->boolean('incluir_familia', true);
         $responsavel = $pessoa->responsavel_familiar_id ? $pessoa->responsavelFamiliar : $pessoa;
 
-        $grupo = collect([$responsavel])
-            ->merge($responsavel->dependentes)
-            ->filter(fn ($membro) => $membro->abrigo_id === $abrigo->id && $membro->data_saida === null)
-            ->unique('id')
-            ->values();
+        $grupo = $incluirFamilia
+            ? collect([$responsavel])
+                ->merge($responsavel->dependentes)
+                ->filter(fn ($membro) => $membro->abrigo_id === $abrigo->id && $membro->data_saida === null)
+                ->unique('id')
+                ->values()
+            : collect([$pessoa]);
 
-        DB::transaction(function () use ($grupo, $abrigo, $destino, $data, $request) {
+        DB::transaction(function () use ($grupo, $abrigo, $destino, $data, $request, $incluirFamilia, $pessoa) {
             foreach ($grupo as $membro) {
                 PessoaAbrigadaTransferencia::create([
                     'pessoa_abrigada_id' => $membro->id,
@@ -154,6 +159,13 @@ class PessoaAbrigadaController extends Controller
                     'abrigo_id' => $destino->id,
                     'data_entrada' => now(),
                 ]);
+            }
+
+            if (! $incluirFamilia) {
+                // A pessoa deixou a família para trás (ou foi deixada por ela): o vínculo
+                // familiar não faz mais sentido com quem ficou em outro abrigo.
+                $pessoa->update(['responsavel_familiar_id' => null]);
+                $pessoa->dependentes()->update(['responsavel_familiar_id' => null]);
             }
         });
 

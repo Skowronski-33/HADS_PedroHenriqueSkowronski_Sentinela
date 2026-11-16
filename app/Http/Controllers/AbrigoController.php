@@ -48,17 +48,29 @@ class AbrigoController extends Controller
         return redirect()->route('abrigos.index')->with('success', 'Abrigo cadastrado com sucesso.');
     }
 
+    public const POR_PAGINA_OPCOES = [10, 25, 50];
+
     public function show(Request $request, Abrigo $abrigo)
     {
         $abrigo->load(['donativos' => fn ($q) => $q->orderBy('tipo')]);
 
         $busca = $request->query('busca');
+        $porPagina = $request->query('por_pagina', '10');
 
-        $pessoas = $abrigo->pessoasAtivas()
+        $consultaPessoas = $abrigo->pessoasAtivas()
             ->when($busca, fn ($q) => $q->where('nome', 'ilike', "%{$busca}%"))
-            ->orderBy('nome')
-            ->paginate(10)
-            ->withQueryString();
+            ->orderBy('nome');
+
+        $limite = $porPagina === 'todos'
+            ? max((clone $consultaPessoas)->count(), 1)
+            : (int) $porPagina;
+
+        if ($porPagina !== 'todos' && ! in_array($limite, self::POR_PAGINA_OPCOES, true)) {
+            $limite = 10;
+            $porPagina = '10';
+        }
+
+        $pessoas = $consultaPessoas->paginate($limite)->withQueryString();
 
         $ocupacaoAtual = $abrigo->ocupacaoAtual();
         $outrosAbrigos = Abrigo::where('id', '!=', $abrigo->id)->where('ativo', true)->orderBy('nome')->get();
@@ -69,7 +81,9 @@ class AbrigoController extends Controller
             ->orderBy('nome')
             ->get(['id', 'nome']);
 
-        return view('abrigos.show', compact('abrigo', 'pessoas', 'busca', 'ocupacaoAtual', 'outrosAbrigos', 'responsaveisDisponiveis'));
+        $porPaginaOpcoes = self::POR_PAGINA_OPCOES;
+
+        return view('abrigos.show', compact('abrigo', 'pessoas', 'busca', 'porPagina', 'porPaginaOpcoes', 'ocupacaoAtual', 'outrosAbrigos', 'responsaveisDisponiveis'));
     }
 
     public function edit(Abrigo $abrigo)

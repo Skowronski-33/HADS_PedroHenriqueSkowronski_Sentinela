@@ -61,7 +61,7 @@
                     Mostrando {{ $pessoas->count() }} de {{ $pessoas->total() }} pessoas abrigadas
                     (Capacidade: {{ $abrigo->capacidade }})
                 </p>
-                <form method="GET" action="{{ route('abrigos.show', $abrigo) }}" class="d-flex gap-2">
+                <form method="GET" action="{{ route('abrigos.show', $abrigo) }}" class="d-flex align-items-center gap-2">
                     <input type="text" name="busca" value="{{ $busca }}" class="form-control form-control-sm" placeholder="Buscar por nome...">
                     <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap">
                         <i class="bi bi-search"></i>
@@ -69,6 +69,14 @@
                     @if ($busca)
                         <button type="button" data-href="{{ route('abrigos.show', $abrigo) }}" class="btn btn-sm btn-outline-secondary text-nowrap">Limpar</button>
                     @endif
+
+                    <label for="porPaginaPessoas" class="text-muted small mb-0 ms-2 text-nowrap">Mostrar</label>
+                    <select name="por_pagina" id="porPaginaPessoas" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                        @foreach ($porPaginaOpcoes as $opcao)
+                            <option value="{{ $opcao }}" {{ $porPagina === (string) $opcao ? 'selected' : '' }}>{{ $opcao }}</option>
+                        @endforeach
+                        <option value="todos" {{ $porPagina === 'todos' ? 'selected' : '' }}>Todos</option>
+                    </select>
                 </form>
             </div>
         </div>
@@ -117,20 +125,10 @@
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     @if ($outrosAbrigos->isNotEmpty())
-                                        <form method="POST" action="{{ route('abrigos.pessoas.transferir', [$abrigo, $pessoa]) }}" class="d-flex gap-1">
-                                            @csrf
-                                            @method('PATCH')
-                                            <select name="abrigo_destino_id" class="form-select form-select-sm" style="width: 160px;" required>
-                                                <option value="">Transferir para...</option>
-                                                @foreach ($outrosAbrigos as $outro)
-                                                    <option value="{{ $outro->id }}">{{ $outro->nome }}</option>
-                                                @endforeach
-                                            </select>
-                                            <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap"
-                                                    title="{{ $temFamilia ? 'A família inteira (responsável + dependentes) é transferida junto automaticamente.' : 'Transferir' }}">
-                                                <i class="bi bi-arrow-left-right"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" title="Transferir"
+                                                onclick="abrirModalTransferir({{ $pessoa->id }}, {{ json_encode($pessoa->nome) }}, {{ $temFamilia ? 'true' : 'false' }}, {{ $pessoa->responsavelFamiliar ? 'true' : 'false' }}, {{ $pessoa->dependentes->count() }})">
+                                            <i class="bi bi-arrow-left-right"></i>
+                                        </button>
                                     @endif
                                     <form method="POST" action="{{ route('abrigos.pessoas.saida', [$abrigo, $pessoa]) }}"
                                           data-confirm="{{ $temFamilia ? "Registrar saída definitiva de {$pessoa->nome} e de toda a família (responsável + dependentes) deste abrigo?" : "Registrar saída definitiva de {$pessoa->nome} deste abrigo?" }}">
@@ -330,6 +328,94 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modalTransferirPessoa" tabindex="-1" aria-labelledby="modalTransferirPessoaLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" id="formTransferirPessoa" action="">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="_pessoa_id" id="transferirPessoaId" value="{{ old('_pessoa_id') }}">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTransferirPessoaLabel">Transferir Pessoa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3">Transferir <strong id="transferirPessoaNome"></strong> para outro abrigo.</p>
+
+                        <div class="mb-3">
+                            <label class="form-label">Abrigo de destino</label>
+                            <select name="abrigo_destino_id" id="transferirAbrigoDestino"
+                                    class="form-select @error('abrigo_destino_id', 'pessoa_transferir') is-invalid @enderror" required>
+                                <option value="">Selecione...</option>
+                                @foreach ($outrosAbrigos as $outro)
+                                    <option value="{{ $outro->id }}">{{ $outro->nome }}</option>
+                                @endforeach
+                            </select>
+                            @error('abrigo_destino_id', 'pessoa_transferir')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-check" id="transferirFamiliaCheck" hidden>
+                            <input type="checkbox" name="incluir_familia" value="1" id="transferirIncluirFamilia" class="form-check-input" checked>
+                            <label for="transferirIncluirFamilia" class="form-check-label" id="transferirFamiliaLabel"></label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Transferir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pessoaTransferirUrlTemplate = @json(route('abrigos.pessoas.transferir', [$abrigo, '__ID__']));
+
+        function abrirModalTransferir(id, nome, temFamilia, souDependente, qtdDependentes) {
+            document.getElementById('formTransferirPessoa').action = pessoaTransferirUrlTemplate.replace('__ID__', id);
+            document.getElementById('transferirPessoaId').value = id;
+            document.getElementById('transferirPessoaNome').textContent = nome;
+            document.getElementById('transferirAbrigoDestino').value = '';
+
+            const check = document.getElementById('transferirFamiliaCheck');
+            const label = document.getElementById('transferirFamiliaLabel');
+            const input = document.getElementById('transferirIncluirFamilia');
+
+            check.hidden = !temFamilia;
+            input.checked = true;
+            label.textContent = souDependente
+                ? 'Transferir também o restante da família (responsável e demais dependentes)'
+                : `Transferir também ${qtdDependentes} dependente(s) junto`;
+
+            new bootstrap.Modal(document.getElementById('modalTransferirPessoa')).show();
+        }
+    </script>
+
+    @php
+        $pessoaComErroTransferencia = old('_pessoa_id')
+            ? $pessoas->firstWhere('id', (int) old('_pessoa_id'))
+            : null;
+    @endphp
+    @if ($errors->pessoa_transferir->any())
+        <script>
+            @if ($pessoaComErroTransferencia)
+                abrirModalTransferir(
+                    {{ $pessoaComErroTransferencia->id }},
+                    {{ json_encode($pessoaComErroTransferencia->nome) }},
+                    {{ ($pessoaComErroTransferencia->responsavelFamiliar || $pessoaComErroTransferencia->dependentes->isNotEmpty()) ? 'true' : 'false' }},
+                    {{ $pessoaComErroTransferencia->responsavelFamiliar ? 'true' : 'false' }},
+                    {{ $pessoaComErroTransferencia->dependentes->count() }}
+                );
+            @else
+                new bootstrap.Modal(document.getElementById('modalTransferirPessoa')).show();
+            @endif
+            document.getElementById('transferirAbrigoDestino').value = {{ json_encode(old('abrigo_destino_id')) }};
+            document.getElementById('transferirIncluirFamilia').checked = {{ old('incluir_familia') ? 'true' : 'false' }};
+        </script>
+    @endif
 
     <script>
         const pessoaUpdateUrlTemplate = @json(route('abrigos.pessoas.update', [$abrigo, '__ID__']));

@@ -26,7 +26,6 @@
                 <div class="col-md-6 col-lg-4">
                     <x-resource-card
                         :title="$abrigo->nome"
-                        icon="bi-house-door-fill"
                         :border-color="$borderColor"
                     >
                         <x-slot:headerBadge>
@@ -58,14 +57,14 @@
                         </x-slot:actions>
 
                         <div class="equip-card-meta">
-                            <span class="row-item"><i class="bi bi-geo-alt"></i> {{ $abrigo->enderecoCompleto() }}</span>
-                            <span class="row-item"><i class="bi bi-person-badge"></i> {{ $abrigo->responsavel ?: 'Sem responsável definido' }}</span>
+                            <span class="row-item">{{ $abrigo->enderecoCompleto() }}</span>
+                            <span class="row-item">{{ $abrigo->responsavel ?: 'Sem responsável definido' }}</span>
                         </div>
 
                         <x-slot:extraContent>
                             <div class="equip-card-meta">
                                 <div class="entity-mini-stat mb-1">
-                                    <span><i class="bi bi-people"></i> Ocupação</span>
+                                    <span>Ocupação</span>
                                     <strong>{{ $abrigo->ocupacao_atual }} / {{ $abrigo->capacidade }}</strong>
                                 </div>
                                 <div class="progress" style="height: .5rem;">
@@ -76,7 +75,7 @@
 
                         <x-slot:footer>
                             <a data-href="{{ route('abrigos.show', $abrigo) }}" class="btn btn-primary w-100 stretched-link" role="link" tabindex="0">
-                                <i class="bi bi-gear-fill"></i> Gerenciar Abrigo
+                                Gerenciar Abrigo
                             </a>
                         </x-slot:footer>
                     </x-resource-card>
