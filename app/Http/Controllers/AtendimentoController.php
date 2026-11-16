@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Atendimento;
 use App\Models\Equipamento;
 use App\Models\Equipe;
@@ -41,7 +42,9 @@ class AtendimentoController extends Controller
             'observacoes' => ['nullable', 'string'],
         ], [], ['equipe_id' => 'equipe', 'viatura_id' => 'viatura']);
 
-        DB::transaction(function () use ($data, $ocorrencia) {
+        $atendimento = null;
+
+        DB::transaction(function () use ($data, $ocorrencia, &$atendimento) {
             $atendimento = $ocorrencia->atendimentos()->create([
                 'equipe_id' => $data['equipe_id'],
                 'viatura_id' => $data['viatura_id'] ?? null,
@@ -72,6 +75,15 @@ class AtendimentoController extends Controller
                 Viatura::where('id', $data['viatura_id'])->update(['status' => 'Em Atendimento']);
             }
         });
+
+        $atendimento->load('equipe', 'viatura');
+
+        ActivityLog::registrar(
+            'atendimento.despachado',
+            "Atendimento despachado para a ocorrência #{$ocorrencia->id} — equipe: {$atendimento->equipe->nome}".
+                ($atendimento->viatura ? ", viatura: {$atendimento->viatura->identificacao}" : '').'.',
+            $atendimento
+        );
 
         return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Atendimento despachado com sucesso.');
     }
@@ -113,6 +125,12 @@ class AtendimentoController extends Controller
                 }
             }
         });
+
+        ActivityLog::registrar(
+            'atendimento.status_alterado',
+            "Status do atendimento da ocorrência #{$ocorrencia->id} alterado para \"{$data['status']}\".",
+            $atendimento
+        );
 
         return back()->with('success', 'Status do atendimento atualizado.');
     }

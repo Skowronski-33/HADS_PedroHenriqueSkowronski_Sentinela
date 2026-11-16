@@ -28,6 +28,11 @@
                                 <i class="bi bi-people"></i> Usuários
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('atividades.*') ? 'active' : '' }}" data-href="{{ route('atividades.index') }}" role="link" tabindex="0">
+                                <i class="bi bi-clock-history"></i> Atividades
+                            </a>
+                        </li>
                     @endrole
                     @hasanyrole('Atendente de Ocorrências|Gerente Operacional|Admin')
                         <li class="nav-item">

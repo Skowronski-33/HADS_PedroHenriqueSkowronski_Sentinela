@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Equipe;
 use App\Models\TipoEquipe;
 use App\Models\Voluntario;
@@ -109,6 +110,12 @@ class EquipeController extends Controller
 
         $equipe->update(['status' => $data['status']]);
 
+        ActivityLog::registrar(
+            'equipe.status_alterado',
+            "Status da equipe \"{$equipe->nome}\" alterado para \"{$data['status']}\".",
+            $equipe
+        );
+
         return back()->with('success', "Status da equipe \"{$equipe->nome}\" atualizado para \"{$data['status']}\".");
     }
 
@@ -123,6 +130,8 @@ class EquipeController extends Controller
         $mensagem = $equipe->ativo
             ? "Equipe \"{$equipe->nome}\" reativada."
             : "Equipe \"{$equipe->nome}\" inativada.";
+
+        ActivityLog::registrar($equipe->ativo ? 'equipe.reativada' : 'equipe.inativada', $mensagem, $equipe);
 
         return back()->with('success', $mensagem);
     }

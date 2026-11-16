@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Viatura;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -102,6 +103,12 @@ class ViaturaController extends Controller
             'disponibilidade' => $data['status'] === 'Disponível' ? 'Sim' : 'Não',
         ]);
 
+        ActivityLog::registrar(
+            'viatura.status_alterado',
+            "Status da viatura \"{$viatura->identificacao}\" alterado para \"{$data['status']}\".",
+            $viatura
+        );
+
         return back()->with('success', "Status de \"{$viatura->identificacao}\" atualizado para \"{$data['status']}\".");
     }
 
@@ -116,6 +123,8 @@ class ViaturaController extends Controller
         $mensagem = $viatura->ativo
             ? "Viatura \"{$viatura->identificacao}\" reativada."
             : "Viatura \"{$viatura->identificacao}\" inativada.";
+
+        ActivityLog::registrar($viatura->ativo ? 'viatura.reativada' : 'viatura.inativada', $mensagem, $viatura);
 
         return back()->with('success', $mensagem);
     }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AbrigoController;
 use App\Http\Controllers\AtendimentoController;
+use App\Http\Controllers\AtividadeController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DonativoController;
@@ -42,6 +43,9 @@ Route::middleware('auth')->group(function () {
             ->name('usuarios.toggle-ativo');
         Route::patch('usuarios/{user}/reset-password', [UserController::class, 'resetPassword'])
             ->name('usuarios.reset-password');
+
+        Route::get('atividades', [AtividadeController::class, 'index'])
+            ->name('atividades.index');
     });
 
     // Abrigos, donativos e pessoas abrigadas (RF14, RF15, RF16) - Gerenciador de Abrigo e Admin

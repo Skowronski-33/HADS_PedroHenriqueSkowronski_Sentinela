@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Equipamento;
 use App\Models\TipoEquipamento;
 use Illuminate\Http\Request;
@@ -117,6 +118,12 @@ class EquipamentoController extends Controller
             'disponibilidade' => $data['status'] === 'Disponível' ? 'Sim' : 'Não',
         ]);
 
+        ActivityLog::registrar(
+            'equipamento.status_alterado',
+            "Status do equipamento \"{$equipamento->nome}\" alterado para \"{$data['status']}\".",
+            $equipamento
+        );
+
         return back()->with('success', "Status de \"{$equipamento->nome}\" atualizado para \"{$data['status']}\".");
     }
 
@@ -127,6 +134,8 @@ class EquipamentoController extends Controller
         $mensagem = $equipamento->ativo
             ? "Equipamento \"{$equipamento->nome}\" reativado."
             : "Equipamento \"{$equipamento->nome}\" inativado.";
+
+        ActivityLog::registrar($equipamento->ativo ? 'equipamento.reativado' : 'equipamento.inativado', $mensagem, $equipamento);
 
         return back()->with('success', $mensagem);
     }

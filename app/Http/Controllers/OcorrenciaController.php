@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Equipamento;
 use App\Models\Equipe;
 use App\Models\Ocorrencia;
@@ -171,6 +172,8 @@ class OcorrenciaController extends Controller
             $ocorrencia->update(['status' => 'Encerrada']);
         });
 
+        ActivityLog::registrar('ocorrencia.encerrada', "Ocorrência #{$ocorrencia->id} encerrada.", $ocorrencia);
+
         return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Ocorrência encerrada com sucesso.');
     }
 
@@ -192,6 +195,12 @@ class OcorrenciaController extends Controller
 
         $ocorrencia->update($data);
 
+        ActivityLog::registrar(
+            'ocorrencia.triada',
+            "Ocorrência #{$ocorrencia->id} triada/classificada — prioridade: {$ocorrencia->prioridade->nome}.",
+            $ocorrencia
+        );
+
         return redirect()->route('ocorrencias.show', $ocorrencia)->with('success', 'Triagem registrada com sucesso. A ocorrência já pode ser despachada.');
     }
 
@@ -206,6 +215,8 @@ class OcorrenciaController extends Controller
         }
 
         $ocorrencia->update(['status' => 'Descartada']);
+
+        ActivityLog::registrar('ocorrencia.descartada', "Ocorrência #{$ocorrencia->id} descartada.", $ocorrencia);
 
         return redirect()->route('ocorrencias.index')->with('success', 'Ocorrência descartada com sucesso.');
     }
