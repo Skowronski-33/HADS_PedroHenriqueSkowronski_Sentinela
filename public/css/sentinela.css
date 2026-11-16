@@ -634,6 +634,10 @@ a.row-item:hover {
     margin-top: auto;
     padding-top: .75rem;
     border-top: 1px solid #f1f3f6;
+    /* Mesmo motivo do menu "⋮": fica acima de um eventual .stretched-link do card
+       (ex: select de status da Equipe), senão o clique seria "roubado" pelo link. */
+    position: relative;
+    z-index: 2;
 }
 
 .equip-card-inactive {

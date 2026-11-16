@@ -81,6 +81,9 @@
                             </li>
                         </x-slot:actions>
 
+                        <a data-href="{{ route('equipes.edit', $equipe) }}" class="stretched-link" role="link" tabindex="0"
+                           aria-label="Editar equipe {{ $equipe->nome }}"></a>
+
                         <div class="equip-card-meta">
                             <span class="row-item"><i class="bi bi-person-check"></i> {{ $equipe->voluntarios->count() }} membro(s)</span>
                         </div>
