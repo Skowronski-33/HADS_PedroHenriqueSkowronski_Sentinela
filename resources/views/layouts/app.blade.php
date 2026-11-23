@@ -10,6 +10,13 @@
     <link href="{{ asset('css/sentinela.css') }}" rel="stylesheet">
 </head>
 <body>
+    {{-- Carregado aqui (antes de @yield('content')) de propósito: várias páginas têm
+         scripts inline que chamam `new bootstrap.Modal(...)` (ex: reabrir um modal após
+         erro de validação, ou mostrar a senha temporária após redefinir). Se esse script
+         ficasse no fim do body, como é comum, esses scripts de página rodariam antes dele
+         carregar e "bootstrap" ainda não existiria. --}}
+    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
     <nav class="navbar navbar-expand-lg navbar-dark navbar-sentinela">
         <div class="container-fluid">
             <a class="navbar-brand" data-href="{{ route('dashboard') }}" role="link" tabindex="0">
@@ -127,7 +134,6 @@
         </div>
     </div>
 
-    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script>
         const flashSuccess = document.getElementById('flash-success');
         if (flashSuccess) {
