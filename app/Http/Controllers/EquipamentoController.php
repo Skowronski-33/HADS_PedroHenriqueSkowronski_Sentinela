@@ -129,6 +129,10 @@ class EquipamentoController extends Controller
 
     public function toggleAtivo(Equipamento $equipamento)
     {
+        if ($equipamento->ativo && $equipamento->status === 'Em Uso') {
+            return back()->with('error', "Não é possível inativar \"{$equipamento->nome}\": ele está em uso em um atendimento.");
+        }
+
         $equipamento->update(['ativo' => ! $equipamento->ativo]);
 
         $mensagem = $equipamento->ativo
