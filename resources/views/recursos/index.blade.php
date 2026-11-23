@@ -21,16 +21,23 @@
 
     <form method="GET" action="{{ route('recursos.index') }}" class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div class="btn-group" role="group">
-            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca]) }}"
+            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca, 'ordenar' => $ordenar]) }}"
                class="btn btn-sm {{ !$tipo ? 'btn-primary' : 'btn-outline-secondary' }}">Todos</button>
-            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca, 'tipo' => 'Equipamento']) }}"
+            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca, 'tipo' => 'Equipamento', 'ordenar' => $ordenar]) }}"
                class="btn btn-sm {{ $tipo === 'Equipamento' ? 'btn-primary' : 'btn-outline-secondary' }}">Equipamentos</button>
-            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca, 'tipo' => 'Viatura']) }}"
+            <button type="button" data-href="{{ route('recursos.index', ['busca' => $busca, 'tipo' => 'Viatura', 'ordenar' => $ordenar]) }}"
                class="btn btn-sm {{ $tipo === 'Viatura' ? 'btn-primary' : 'btn-outline-secondary' }}">Viaturas</button>
         </div>
-        <div class="search-inline" style="width: 300px; max-width: 100%;">
-            <i class="bi bi-search"></i>
-            <input type="text" name="busca" value="{{ $busca }}" class="form-control" placeholder="Buscar por nome...">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="search-inline" style="width: 300px; max-width: 100%;">
+                <i class="bi bi-search"></i>
+                <input type="text" name="busca" value="{{ $busca }}" class="form-control" placeholder="Buscar por nome...">
+            </div>
+            <select name="ordenar" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                <option value="nome" {{ $ordenar === 'nome' ? 'selected' : '' }}>Ordenar por Nome (A-Z)</option>
+                <option value="tipo" {{ $ordenar === 'tipo' ? 'selected' : '' }}>Ordenar por Tipo</option>
+                <option value="status" {{ $ordenar === 'status' ? 'selected' : '' }}>Ordenar por Status</option>
+            </select>
             <input type="hidden" name="tipo" value="{{ $tipo }}">
         </div>
     </form>
@@ -62,7 +69,6 @@
                     @foreach ($recursos as $recurso)
                         <tr class="{{ !$recurso->ativo ? 'text-muted' : '' }}">
                             <td>
-                                <i class="bi {{ $recurso->icone }} me-2"></i>
                                 <strong>{{ $recurso->nome }}</strong>
                                 @if (!$recurso->ativo)
                                     <span class="badge bg-secondary ms-1">Inativo</span>
@@ -71,7 +77,7 @@
                                     <div class="small text-muted">{{ $recurso->subtitulo }}</div>
                                 @endif
                             </td>
-                            <td><span class="tag-chip">{{ $recurso->tipo_recurso }}</span></td>
+                            <td class="text-muted">{{ $recurso->tipo_recurso }}</td>
                             <td>
                                 <span class="status-badge status-badge-{{ $statusSlug[$recurso->status] ?? 'indisponivel' }}">
                                     {{ $recurso->status }}

@@ -9,17 +9,23 @@ use Illuminate\Support\Collection;
 
 class RecursoController extends Controller
 {
+    private const ORDENAR_OPCOES = ['nome', 'tipo', 'status'];
+
     public function index(Request $request)
     {
         $busca = $request->query('busca');
         $tipo = $request->query('tipo');
+        $ordenar = $request->query('ordenar', 'nome');
+
+        if (! in_array($ordenar, self::ORDENAR_OPCOES, true)) {
+            $ordenar = 'nome';
+        }
 
         $equipamentos = Equipamento::with('tipoEquipamento')
             ->when($busca, fn ($q) => $q->where('nome', 'ilike', "%{$busca}%"))
             ->get()
             ->map(fn (Equipamento $equipamento) => (object) [
                 'tipo_recurso' => 'Equipamento',
-                'icone' => $equipamento->iconeTipo(),
                 'nome' => $equipamento->nome,
                 'subtitulo' => $equipamento->tipoEquipamento->nome,
                 'status' => $equipamento->status,
@@ -31,24 +37,30 @@ class RecursoController extends Controller
             ->get()
             ->map(fn (Viatura $viatura) => (object) [
                 'tipo_recurso' => 'Viatura',
-                'icone' => 'bi-truck',
                 'nome' => $viatura->identificacao,
                 'subtitulo' => $viatura->modelo ?: $viatura->placa,
                 'status' => $viatura->status,
                 'ativo' => $viatura->ativo,
             ]);
 
+        $criterioOrdenacao = match ($ordenar) {
+            'tipo' => [['tipo_recurso', 'asc'], ['nome', 'asc']],
+            'status' => [['status', 'asc'], ['nome', 'asc']],
+            default => [['nome', 'asc']],
+        };
+
         $recursos = (new Collection())
             ->concat($equipamentos)
             ->concat($viaturas)
             ->when($tipo, fn (Collection $c) => $c->where('tipo_recurso', $tipo))
-            ->sortBy('nome')
+            ->sortBy($criterioOrdenacao)
             ->values();
 
         return view('recursos.index', [
             'recursos' => $recursos,
             'busca' => $busca,
             'tipo' => $tipo,
+            'ordenar' => $ordenar,
         ]);
     }
 }
