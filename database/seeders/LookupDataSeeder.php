@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\FuncaoEquipe;
 use App\Models\Prioridade;
 use App\Models\TipoEquipamento;
 use App\Models\TipoEquipe;
@@ -52,6 +53,16 @@ class LookupDataSeeder extends Seeder
             TipoEquipamento::firstOrCreate(['nome' => $nome]);
         }
 
-        $this->command->info('Dados de referência (tipos e prioridades) cadastrados.');
+        foreach ([
+            'Coordenador de Equipe',
+            'Motorista/Condutor',
+            'Socorrista',
+            'Apoio Logístico',
+            'Comunicação',
+        ] as $nome) {
+            FuncaoEquipe::firstOrCreate(['nome' => $nome]);
+        }
+
+        $this->command->info('Dados de referência (tipos, prioridades e funções de equipe) cadastrados.');
     }
 }

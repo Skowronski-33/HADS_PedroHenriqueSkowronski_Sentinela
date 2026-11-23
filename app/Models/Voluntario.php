@@ -22,6 +22,7 @@ class Voluntario extends Model
 
     public function equipes(): BelongsToMany
     {
-        return $this->belongsToMany(Equipe::class, 'equipe_voluntario');
+        return $this->belongsToMany(Equipe::class, 'equipe_voluntario')
+            ->withPivot('funcao_equipe_id');
     }
 }

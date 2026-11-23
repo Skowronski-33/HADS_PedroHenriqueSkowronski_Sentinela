@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Equipe;
+use App\Models\FuncaoEquipe;
 use App\Models\TipoEquipe;
 use App\Models\Voluntario;
 use Illuminate\Http\Request;
@@ -38,7 +39,9 @@ class EquipeController extends Controller
     {
         return view('equipes.create', [
             'tipos' => TipoEquipe::where('ativo', true)->orderBy('nome')->get(),
-            'voluntarios' => Voluntario::where('ativo', true)->orderBy('nome')->get(),
+            'voluntarios' => Voluntario::where('ativo', true)->with('equipes')->orderBy('nome')->get(),
+            'funcoesEquipe' => FuncaoEquipe::where('ativo', true)->orderBy('nome')->get(),
+            'funcoesEquipeMap' => collect(),
         ]);
     }
 
@@ -50,16 +53,19 @@ class EquipeController extends Controller
             'observacoes' => ['nullable', 'string'],
             'voluntarios' => ['nullable', 'array'],
             'voluntarios.*' => ['exists:voluntarios,id'],
+            'funcoes' => ['nullable', 'array'],
+            'funcoes.*' => ['nullable', 'string', 'max:100'],
         ]);
 
         $voluntarios = $data['voluntarios'] ?? [];
-        unset($data['voluntarios']);
+        $funcoes = $data['funcoes'] ?? [];
+        unset($data['voluntarios'], $data['funcoes']);
 
         $data['status'] = 'Disponível';
         $data['ativo'] = true;
 
         $equipe = Equipe::create($data);
-        $equipe->voluntarios()->sync($voluntarios);
+        $equipe->voluntarios()->sync($this->montarPivotMembros($voluntarios, $funcoes));
 
         return redirect()->route('equipes.index')->with('success', 'Equipe cadastrada com sucesso.');
     }
@@ -70,6 +76,7 @@ class EquipeController extends Controller
 
         $voluntarios = Voluntario::where('ativo', true)
             ->orWhereIn('id', $equipe->voluntarios->pluck('id'))
+            ->with('equipes')
             ->orderBy('nome')
             ->get();
 
@@ -77,6 +84,8 @@ class EquipeController extends Controller
             'equipe' => $equipe,
             'tipos' => TipoEquipe::where('ativo', true)->orderBy('nome')->get(),
             'voluntarios' => $voluntarios,
+            'funcoesEquipe' => FuncaoEquipe::where('ativo', true)->orderBy('nome')->get(),
+            'funcoesEquipeMap' => FuncaoEquipe::pluck('nome', 'id'),
         ]);
     }
 
@@ -89,17 +98,51 @@ class EquipeController extends Controller
             'ativo' => ['nullable', 'boolean'],
             'voluntarios' => ['nullable', 'array'],
             'voluntarios.*' => ['exists:voluntarios,id'],
+            'funcoes' => ['nullable', 'array'],
+            'funcoes.*' => ['nullable', 'string', 'max:100'],
         ]);
 
         $voluntarios = $data['voluntarios'] ?? [];
-        unset($data['voluntarios']);
+        $funcoes = $data['funcoes'] ?? [];
+        unset($data['voluntarios'], $data['funcoes']);
 
         $data['ativo'] = $request->boolean('ativo');
 
         $equipe->update($data);
-        $equipe->voluntarios()->sync($voluntarios);
+        $equipe->voluntarios()->sync($this->montarPivotMembros($voluntarios, $funcoes));
 
         return redirect()->route('equipes.index')->with('success', 'Equipe atualizada com sucesso.');
+    }
+
+    /**
+     * Monta o array de sync() do pivô equipe_voluntario, resolvendo o texto livre de
+     * função (digitado no combobox) para o id de uma função existente ou recém-criada.
+     *
+     * @param  array<int, int|string>  $voluntarios
+     * @param  array<int|string, string|null>  $funcoes
+     */
+    private function montarPivotMembros(array $voluntarios, array $funcoes): array
+    {
+        $pivot = [];
+
+        foreach ($voluntarios as $voluntarioId) {
+            $nomeFuncao = trim((string) ($funcoes[$voluntarioId] ?? ''));
+
+            $pivot[$voluntarioId] = [
+                'funcao_equipe_id' => $nomeFuncao !== '' ? $this->localizarOuCriarFuncao($nomeFuncao)->id : null,
+            ];
+        }
+
+        return $pivot;
+    }
+
+    private function localizarOuCriarFuncao(string $nome): FuncaoEquipe
+    {
+        $nome = trim($nome);
+
+        $funcao = FuncaoEquipe::whereRaw('lower(nome) = ?', [mb_strtolower($nome)])->first();
+
+        return $funcao ?? FuncaoEquipe::create(['nome' => $nome, 'ativo' => true]);
     }
 
     public function status(Request $request, Equipe $equipe)

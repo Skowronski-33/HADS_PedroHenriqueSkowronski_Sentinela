@@ -314,6 +314,53 @@ a[data-href] {
     border-top: 1px solid rgba(15, 31, 54, .07);
 }
 
+/* Lista de membros da Equipe (padrão lista + modal): cada linha mostra o
+   voluntário selecionado, a função (combobox alinhado à direita) e um botão
+   de remover — a seleção em si acontece no modal "Adicionar Membros". */
+.membros-wrapper {
+    border: 1px solid #e5e9ef;
+    border-radius: .75rem;
+    overflow: hidden;
+}
+
+.membro-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .6rem .9rem;
+    border-bottom: 1px solid #f1f3f6;
+}
+
+.membro-row:last-child {
+    border-bottom: none;
+}
+
+.membro-info {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.membro-nome {
+    font-weight: 600;
+    color: var(--sentinela-navy-900);
+    font-size: .9rem;
+}
+
+.membro-telefone {
+    font-size: .78rem;
+    color: #8a97aa;
+}
+
+.membro-funcao {
+    flex: 0 0 200px;
+}
+
+.membro-remover {
+    flex-shrink: 0;
+}
+
 /* Combobox: input de texto livre + sugestões, substitui o <datalist> nativo
    (sem estilização possível e visualmente inconsistente entre navegadores). */
 .combobox {
