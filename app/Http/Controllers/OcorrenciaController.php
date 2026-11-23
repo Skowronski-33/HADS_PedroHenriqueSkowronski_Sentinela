@@ -103,7 +103,9 @@ class OcorrenciaController extends Controller
 
         return view('ocorrencias.show', [
             'ocorrencia' => $ocorrencia,
-            'equipesDisponiveis' => Equipe::where('ativo', true)->where('status', 'Disponível')->orderBy('nome')->get(),
+            'equipesDisponiveis' => Equipe::where('ativo', true)->where('status', 'Disponível')
+                ->with('voluntarios.equipes')
+                ->orderBy('nome')->get(),
             'viaturasDisponiveis' => Viatura::where('ativo', true)->where('status', 'Disponível')->orderBy('identificacao')->get(),
             'equipamentosDisponiveis' => Equipamento::where('ativo', true)->where('status', 'Disponível')->orderBy('nome')->get(),
             'atendimentoStatusOpcoes' => AtendimentoController::STATUS_OPCOES,

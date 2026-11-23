@@ -25,6 +25,23 @@
     $podeTriar = in_array($ocorrencia->status, ['Aberta', 'Triada', 'Em Atendimento']);
     $ehCritica = $ocorrencia->prioridade?->nome === 'Crítica';
     $aguardandoEquipe = $podeDespachar && $equipesDisponiveis->isEmpty();
+
+    // Um voluntário pode estar em mais de uma equipe; se um membro da equipe escolhida
+    // também estiver numa outra equipe que já está em serviço, ele provavelmente não vai
+    // estar disponível de verdade — avisa antes de despachar (ver modalConflitoEquipe).
+    $conflitosEquipe = $equipesDisponiveis->mapWithKeys(function ($equipe) {
+        $conflitos = collect();
+
+        foreach ($equipe->voluntarios as $voluntario) {
+            foreach ($voluntario->equipes as $outraEquipe) {
+                if ($outraEquipe->id !== $equipe->id && $outraEquipe->status === 'Em Serviço') {
+                    $conflitos->push(['membro' => $voluntario->nome, 'equipe' => $outraEquipe->nome]);
+                }
+            }
+        }
+
+        return [$equipe->id => $conflitos->values()];
+    });
 @endphp
 
 @section('content')
@@ -113,7 +130,7 @@
                         Nenhuma equipe disponível no momento. A ocorrência está triada e pronta para despacho assim que uma equipe for liberada.
                     </div>
                 @endif
-                <form method="POST" action="{{ route('ocorrencias.atendimentos.store', $ocorrencia) }}">
+                <form method="POST" id="formDespacho" action="{{ route('ocorrencias.atendimentos.store', $ocorrencia) }}">
                     @csrf
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -180,6 +197,66 @@
                 </form>
             </div>
         </div>
+
+        <div class="modal fade" id="modalConflitoEquipe" tabindex="-1" aria-labelledby="modalConflitoEquipeLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalConflitoEquipeLabel">
+                            <i class="bi bi-exclamation-triangle-fill text-warning"></i> Membro também está em outra equipe
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Esta equipe tem membro(s) que também fazem parte de outra equipe já em serviço em outro atendimento:</p>
+                        <ul id="conflitoEquipeLista" class="mb-0"></ul>
+                        <p class="text-muted small mt-3 mb-0">
+                            Você pode despachar mesmo assim — a equipe pode ter que sair com menos gente — ou aguardar até o conflito se resolver.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Aguardar</button>
+                        <button type="button" class="btn btn-warning" id="despacharMesmoAssimBtn">
+                            <i class="bi bi-send"></i> Despachar mesmo assim
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                const conflitosEquipe = @json($conflitosEquipe);
+                const formDespacho = document.getElementById('formDespacho');
+                const selectEquipe = document.getElementById('equipe_id');
+                const modalConflitoEl = document.getElementById('modalConflitoEquipe');
+                const listaConflitos = document.getElementById('conflitoEquipeLista');
+
+                formDespacho.addEventListener('submit', (e) => {
+                    if (formDespacho.dataset.conflitoConfirmado === 'true') return;
+
+                    const conflitos = conflitosEquipe[selectEquipe.value] || [];
+                    if (!conflitos.length) return;
+
+                    e.preventDefault();
+
+                    listaConflitos.innerHTML = '';
+                    conflitos.forEach((c) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${c.membro} também faz parte da equipe "${c.equipe}", que está em serviço em outro atendimento.`;
+                        listaConflitos.appendChild(li);
+                    });
+
+                    new bootstrap.Modal(modalConflitoEl).show();
+                });
+
+                document.getElementById('despacharMesmoAssimBtn').addEventListener('click', () => {
+                    bootstrap.Modal.getInstance(modalConflitoEl)?.hide();
+                    formDespacho.dataset.conflitoConfirmado = 'true';
+                    formDespacho.requestSubmit();
+                });
+            })();
+        </script>
     @endif
 
     <div class="card">
