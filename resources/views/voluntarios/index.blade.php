@@ -93,15 +93,10 @@
                         <x-slot:footer>
                             <div class="d-flex justify-content-between align-items-center w-100">
                                 @if ($telDigits)
-                                    <div class="d-flex align-items-center gap-2">
-                                        <a href="tel:{{ $telDigits }}" class="row-item" title="Ligar para {{ $voluntario->nome }}">
-                                            <i class="bi bi-telephone-fill"></i> {{ $voluntario->telefone }}
-                                        </a>
-                                        <a href="https://wa.me/55{{ $telDigits }}" target="_blank" rel="noopener"
-                                           class="text-success" title="Chamar no WhatsApp">
-                                            <i class="bi bi-whatsapp"></i>
-                                        </a>
-                                    </div>
+                                    <a href="https://wa.me/55{{ $telDigits }}" target="_blank" rel="noopener"
+                                       class="row-item text-success" title="Chamar {{ $voluntario->nome }} no WhatsApp">
+                                        <i class="bi bi-whatsapp"></i> {{ $voluntario->telefone }}
+                                    </a>
                                 @else
                                     <span class="equip-card-inactive">Sem telefone</span>
                                 @endif
