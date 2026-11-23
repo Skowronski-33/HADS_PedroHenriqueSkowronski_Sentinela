@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
@@ -76,16 +75,17 @@ class UserController extends Controller
         return redirect()->route('usuarios.index')->with('success', 'Usuário atualizado com sucesso.');
     }
 
-    public function resetPassword(User $user)
+    public function resetPassword(Request $request, User $user)
     {
-        $senhaTemporaria = Str::password(10);
+        $data = $request->validateWithBag('reset_senha', [
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
 
-        $user->password = Hash::make($senhaTemporaria);
+        $user->password = Hash::make($data['password']);
         $user->save();
 
         return redirect()->route('usuarios.index')
-            ->with('usuario_senha_resetada', $user->name)
-            ->with('senha_temporaria', $senhaTemporaria);
+            ->with('success', "Senha de \"{$user->name}\" redefinida com sucesso.");
     }
 
     public function toggleAtivo(Request $request, User $user)
